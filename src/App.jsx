@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
 import './dashboard.css'
 
@@ -80,7 +80,7 @@ function Login() {
         <div className="login-form">
           <div className="input-group">
             <input type="text" className="input-field" required />
-            <label className="input-label">Nome de usuário</label>
+            <label className="input-label">Nome de usuário ou Email do U</label>
           </div>
           <div className="input-group">
             <input type="password" className="input-field" required />
@@ -96,50 +96,72 @@ function Login() {
 function Dashboard() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [currentTime, setCurrentTime] = useState(new Date())
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 1000)
+    
+    return () => clearInterval(timer)
+  }, [])
   
   return (
     <div className="dashboard">
-      <nav className="navbar">
+      <nav className="dashboard-nav">
+        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <div className="nav-brand">Absence Manager</div>
+        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+          Sair
+        </button>
       </nav>
+      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <h3>Menu</h3>
+        </div>
+        <ul className="sidebar-menu">
+          <li><Link to="/dashboard">Dashboard</Link></li>
+          <li><Link to="/cadastrar-aluno">Cadastrar Aluno</Link></li>
+          <li><a href="#">Ausências</a></li>
+          <li><a href="#">Relatórios</a></li>
+          <li><a href="#">Configurações</a></li>
+        </ul>
+      </div>
+      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
+      
+      {showLogoutModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Confirmar Saída</h3>
+            <p>Tem certeza que deseja sair da sua conta?</p>
+            <div className="modal-buttons">
+              <button className="cancel-btn" onClick={() => setShowLogoutModal(false)}>Cancelar</button>
+              <button className="confirm-btn" onClick={() => navigate('/')}>Sair</button>
+            </div>
+          </div>
+        </div>
+      )}
       
       <div className="main-content">
         <div className="top-bar">
           <div className="breadcrumb">
-            <span className="breadcrumb-icon">📈</span>
-            <span>Atividades</span>
-            <span className="mode-toggle">Modo de edição</span>
-          </div>
-          <div className="top-actions">
-            <button className="actions-btn">Ações</button>
-            <button className="indicator-btn">+ Indicador</button>
+            <span className="dashboard-title">Dashboard</span>
           </div>
         </div>
         
         <div className="stats-row">
-          <div className="stat-card">
-            <div className="stat-label">Quantidade de atividades</div>
-            <div className="stat-number">1371</div>
+          <div className="welcome-card">
+            <div className="welcome-title">Bem-Vindo de volta, Admin!</div>
+            <div className="account-name">Admin</div>
           </div>
-          <div className="stat-card">
-            <div className="stat-label">Atividades entregues</div>
-            <div className="stat-number">491</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">No prazo</div>
-            <div className="stat-number">5</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Atrasadas</div>
-            <div className="stat-number">210</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Sem prazo</div>
-            <div className="stat-number">1156</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Com risco de atraso</div>
-            <div className="stat-number">Nenhum</div>
+          <div className="datetime-card">
+            <div className="date-display">{currentTime.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            <div className="time-display">{currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
           </div>
         </div>
         
@@ -294,7 +316,7 @@ function CadastrarAluno() {
             <form action="#">
               <div className="form-header">
                 <div className="title">
-                  <h1>Cadastre-se</h1>
+                  <h1>Cadastrar aluno</h1>
                 </div>
               </div>
               <div className="input-group">

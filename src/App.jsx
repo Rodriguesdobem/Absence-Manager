@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'
+import './dashboard.css'
 
 function Welcome() {
   const navigate = useNavigate()
@@ -98,48 +99,155 @@ function Dashboard() {
   
   return (
     <div className="dashboard">
-      <nav className="dashboard-nav">
-        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
+      <nav className="navbar">
         <div className="nav-brand">Absence Manager</div>
-        <button className="logout-btn" onClick={() => navigate('/')}>
-          Sair
-        </button>
       </nav>
-      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <h3>Menu</h3>
+      
+      <div className="main-content">
+        <div className="top-bar">
+          <div className="breadcrumb">
+            <span className="breadcrumb-icon">📈</span>
+            <span>Atividades</span>
+            <span className="mode-toggle">Modo de edição</span>
+          </div>
+          <div className="top-actions">
+            <button className="actions-btn">Ações</button>
+            <button className="indicator-btn">+ Indicador</button>
+          </div>
         </div>
-        <ul className="sidebar-menu">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/cadastrar-aluno">Cadastrar Aluno</Link></li>
-          <li><a href="#">Ausências</a></li>
-          <li><a href="#">Relatórios</a></li>
-          <li><a href="#">Configurações</a></li>
-        </ul>
-      </div>
-      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
-      <div className="dashboard-content">
-        <h1>Dashboard</h1>
-        <p>Bem-vindo ao sistema de gerenciamento de ausências!</p>
-        <div className="dashboard-cards">
-          <div className="card">
-            <h3>Cadastrar Aluno</h3>
-            <p>Adicionar novo aluno ao sistema</p>
-            <button className="card-btn" onClick={() => navigate('/cadastrar-aluno')}>Acessar</button>
+        
+        <div className="stats-row">
+          <div className="stat-card">
+            <div className="stat-label">Quantidade de atividades</div>
+            <div className="stat-number">1371</div>
           </div>
-          <div className="card">
-            <h3>Ausências</h3>
-            <p>Gerenciar ausências</p>
-            <button className="card-btn">Acessar</button>
+          <div className="stat-card">
+            <div className="stat-label">Atividades entregues</div>
+            <div className="stat-number">491</div>
           </div>
-          <div className="card">
-            <h3>Relatórios</h3>
-            <p>Visualizar relatórios</p>
-            <button className="card-btn">Acessar</button>
+          <div className="stat-card">
+            <div className="stat-label">No prazo</div>
+            <div className="stat-number">5</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Atrasadas</div>
+            <div className="stat-number">210</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Sem prazo</div>
+            <div className="stat-number">1156</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-label">Com risco de atraso</div>
+            <div className="stat-number">Nenhum</div>
+          </div>
+        </div>
+        
+        <div className="charts-row">
+          <div className="chart-section">
+            <h3>Atividades por categoria</h3>
+            <div className="pie-chart blue-pie">
+              <div className="chart-center">
+                <span className="chart-value">1285</span>
+              </div>
+            </div>
+            <div className="chart-legend">
+              <div className="legend-item">
+                <span className="legend-dot blue"></span>
+                <span>Nenhum</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-dot orange"></span>
+                <span>Arquitetura</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-dot red"></span>
+                <span>Cor</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="chart-section">
+            <h3>Atividades por tipo</h3>
+            <div className="pie-chart mixed-pie">
+              <div className="chart-center">
+                <span className="chart-value">793</span>
+              </div>
+            </div>
+            <div className="chart-legend">
+              <div className="legend-item">
+                <span className="legend-dot blue"></span>
+                <span>01 - Sub-reação de Melhoria</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-dot orange"></span>
+                <span>04</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="activities-section">
+            <h3>Próximas atividades</h3>
+            <div className="activity-list">
+              <div className="activity-item">
+                <span className="activity-title">4P15 - Permissão RESTRITO visualização lançamentos fin</span>
+                <div className="activity-meta">
+                  <span className="assignee">Matheus</span>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{width: '100%'}}></div>
+                  </div>
+                  <span className="percentage">100.00 %</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <span className="activity-title">Gestão de Backlog</span>
+                <div className="activity-meta">
+                  <span className="assignee">Angelica</span>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{width: '100%'}}></div>
+                  </div>
+                  <span className="percentage">100.00 %</span>
+                </div>
+              </div>
+              <div className="activity-item">
+                <span className="activity-title">Integração com Central telefônica</span>
+                <div className="activity-meta">
+                  <span className="assignee">Lucas</span>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{width: '100%'}}></div>
+                  </div>
+                  <span className="percentage">100.00 %</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bottom-charts">
+          <div className="bar-chart-section">
+            <h3>Esforço por tipo</h3>
+            <div className="bar-chart">
+              <div className="chart-bars">
+                <div className="bar" style={{height: '80px'}}></div>
+                <div className="bar" style={{height: '60px'}}></div>
+                <div className="bar" style={{height: '40px'}}></div>
+                <div className="bar" style={{height: '30px'}}></div>
+                <div className="bar" style={{height: '20px'}}></div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bar-chart-section">
+            <h3>Esforço por categoria</h3>
+            <div className="bar-chart">
+              <div className="chart-bars">
+                <div className="bar" style={{height: '70px'}}></div>
+                <div className="bar" style={{height: '50px'}}></div>
+                <div className="bar" style={{height: '35px'}}></div>
+                <div className="bar" style={{height: '25px'}}></div>
+                <div className="bar" style={{height: '15px'}}></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -192,15 +300,15 @@ function CadastrarAluno() {
               <div className="input-group">
                 <div className="input-box">
                   <label htmlFor="firstname">Primeiro nome</label>
-                  <input id="firstname" type="text" name="firstname" placeholder="Digite seu primeiro nome" required />
+                  <input id="firstname" type="text" name="firstname" placeholder="Digite o primeiro nome" required />
                 </div>
                 <div className="input-box">
                   <label htmlFor="lastname">Sobrenome</label>
-                  <input id="lastname" type="text" name="lastname" placeholder="Digite seu sobrenome" required />
+                  <input id="lastname" type="text" name="lastname" placeholder="Digite o sobrenome" required />
                 </div>
                 <div className="input-box">
                   <label htmlFor="email">E-mail</label>
-                  <input id="email" type="email" name="email" placeholder="Digite seu email" required />
+                  <input id="email" type="email" name="email" placeholder="Digite o email" required />
                 </div>
                 <div className="input-box">
                   <label htmlFor="number">Celular</label>
@@ -208,11 +316,11 @@ function CadastrarAluno() {
                 </div>
                 <div className="input-box">
                   <label htmlFor="password">Senha</label>
-                  <input id="password" type="password" name="password" placeholder="Digite sua Senha" required />
+                  <input id="password" type="password" name="password" placeholder="Digite a Senha" required />
                 </div>
                 <div className="input-box">
                   <label htmlFor="confirmPassword">Confirme sua Senha</label>
-                  <input id="confirmPassword" type="password" name="confirmPassword" placeholder="Digite sua senha novamente" required />
+                  <input id="confirmPassword" type="password" name="confirmPassword" placeholder="Digite a senha novamente" required />
                 </div>
               </div>
               <div className="gender-inputs">
@@ -227,14 +335,6 @@ function CadastrarAluno() {
                   <div className="gender-input">
                     <input id="male" type="radio" name="gender" />
                     <label htmlFor="male">Masculino</label>
-                  </div>
-                  <div className="gender-input">
-                    <input id="others" type="radio" name="gender" />
-                    <label htmlFor="others">Outros</label>
-                  </div>
-                  <div className="gender-input">
-                    <input id="none" type="radio" name="gender" />
-                    <label htmlFor="none">Prefiro não dizer</label>
                   </div>
                 </div>
               </div>

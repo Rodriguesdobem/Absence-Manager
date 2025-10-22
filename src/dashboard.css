@@ -980,14 +980,14 @@ body {
 .students-table th {
   background: #007bff;
   color: white;
-  padding: 15px;
+  padding: 8px;
   text-align: left;
   font-weight: 600;
   font-size: 14px;
 }
 
 .students-table td {
-  padding: 15px;
+  padding: 8px;
   border-bottom: 1px solid #eee;
   vertical-align: middle;
 }

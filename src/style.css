@@ -241,7 +241,7 @@ html {
 }
 
 .input-field {
-  width: 100%;
+  width: 300px;
   padding: 16px 12px;
   border: none;
   border-bottom: 2px solid #ddd;
@@ -965,14 +965,14 @@ html {
 .students-table th {
   background: #007bff;
   color: white;
-  padding: 15px;
+  padding: 8px;
   text-align: left;
   font-weight: 600;
   font-size: 14px;
 }
 
 .students-table td {
-  padding: 15px;
+  padding: 8px;
   border-bottom: 1px solid #eee;
   vertical-align: middle;
 }
@@ -1761,4 +1761,158 @@ html {
   .turma-select {
     width: 100%;
   }
+}
+
+.message-modal {
+  max-width: 400px;
+  width: 90%;
+}
+
+.message-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.message-content.success {
+  color: #28a745;
+}
+
+.message-content.error {
+  color: #dc3545;
+}
+
+.message-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 15px;
+}
+
+.message-btn:hover {
+  background: #0056b3;
+}
+
+.nav-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.profile-btn {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.profile-btn:hover, .profile-btn.active {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.perfil-page {
+  padding: 20px;
+}
+
+.perfil-card-main {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.perfil-avatar-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.avatar-large {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.perfil-avatar-section h2 {
+  margin: 0 0 10px 0;
+  font-size: 28px;
+}
+
+.perfil-role {
+  opacity: 0.9;
+  font-size: 16px;
+}
+
+.perfil-info-section {
+  padding: 30px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.config-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.config-btn {
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  padding: 12px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+.config-btn:hover {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Botão de Voltar - Tela de Turmas */
+.alunos-container .back-btn {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 40px;
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.alunos-container .back-btn:hover {
+  background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 123, 255, 0.4);
+}
+
+.alunos-container .back-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+}
+/* Correção do relógio */
+.clock-header h3 {
+  color: white;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }

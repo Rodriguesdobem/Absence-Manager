@@ -1,5 +1,5 @@
 import http from '../common/http-common';
-const API_URL = "";
+const API_URL = "/Usuário/v1/api";
 
 const findAll = () => {
     return http.mainInstance.get(API_URL + 'findAll');
@@ -35,6 +35,10 @@ const logout = () => {
 
 const getCurrentUser = () => {
     return JSON.parse(localStorage.getItem("user"));
+};
+
+const cadastrar = data => {
+    return http.mainInstance.post(API_URL + "create", data);
 };
 
 const create = data => {
@@ -77,6 +81,7 @@ const UsuarioService = {
     signin,
     logout,
     getCurrentUser,
+    cadastrar,
     create,
     update,
     inativar,

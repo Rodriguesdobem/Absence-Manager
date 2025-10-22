@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link, useNavigate, useParams } from 'react-router-dom'
+import UsuarioService from './Services/UsuarioService'
 import './style.css'
 
 function Welcome() {
@@ -117,11 +118,11 @@ function Login() {
         <h1>Bem-Vindo!</h1>
         <div className="login-form">
           <div className="input-group">
-            <input type="text" className="input-field" required />
+            <input type="text" className="input-field" style={{height: '50px'}} required />
             <label className="input-label">Nome de usuário ou Email do Usuário</label>
           </div>
           <div className="input-group">
-            <input type="password" className="input-field" required />
+            <input type="password" className="input-field" style={{height: '50px'}} required />
             <label className="input-label">Senha</label>
           </div>
           <div className="login-buttons">
@@ -157,9 +158,14 @@ function Dashboard() {
           <span></span>
         </button>
         <div className="nav-brand">Absence Manager</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -171,7 +177,6 @@ function Dashboard() {
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
-          <li><Link to="/configuracoes-admin">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -293,16 +298,7 @@ function Gerenciamento() {
   const [filtroStatus, setFiltroStatus] = useState('')
   const [filtroNome, setFiltroNome] = useState('')
   const [alunos, setAlunos] = useState([
-    { ra: 1, nome: 'Alan Teste Fulano', nascimento: '01/01/1994', email: 'alan@educante.com', celular: '(11) 99774-7378', turma: 'Turma Violão', ativo: true, faltas: 5, totalAulas: 20 },
-    { ra: 16, nome: 'Augusto', nascimento: '25/09/2010', email: '', celular: '', turma: 'Turma Trompete', ativo: true, faltas: 2, totalAulas: 18 },
-    { ra: 10, nome: 'Bruno César', nascimento: '08/09/2000', email: 'bruno.cesar75@gmail.com', celular: '(11) 99887-7777', turma: 'Turma Piano', ativo: false, faltas: 8, totalAulas: 22 },
-    { ra: 1, nome: 'Diego Lima', nascimento: '10/06/1985', email: 'diegolima7765@hotmail.com', celular: '(41) 99686-8777', turma: 'Turma Violão', ativo: true, faltas: 3, totalAulas: 20 },
-    { ra: 14, nome: 'Gustavo Galvão', nascimento: '12/07/2018', email: '', celular: '', turma: 'Turma Bateria', ativo: false, faltas: 12, totalAulas: 25 },
-    { ra: 9, nome: 'Henrique Dourado', nascimento: '16/06/2001', email: 'henriquedg@hotmail.com', celular: '(21) 98776-6677', turma: 'Turma Trompete', ativo: true, faltas: 1, totalAulas: 18 },
-    { ra: 6, nome: 'João Nogueira', nascimento: '05/04/2000', email: 'joaonogueira567@hotmail.com', celular: '(11) 99877-7666', turma: 'Turma Piano', ativo: true, faltas: 4, totalAulas: 22 },
-    { ra: 3, nome: 'Leonardo Batista', nascimento: '16/04/1999', email: 'leobatista@hotmail.com', celular: '(11) 99885-7766', turma: 'Turma Violão', ativo: true, faltas: 6, totalAulas: 20 },
-    { ra: 7, nome: 'Leonardo Silva', nascimento: '06/05/1985', email: 'leonardosilverno93@gmail.com', celular: '(51) 99489-7776', turma: 'Turma Bateria', ativo: false, faltas: 15, totalAulas: 25 },
-    { ra: 5, nome: 'Luan da Silva', nascimento: '10/02/1996', email: 'luandasilvamkm@hotmail.com', celular: '(71) 99287-7778', turma: 'Turma Piano', ativo: true, faltas: 2, totalAulas: 22 }
+    { ra: 1, nome: 'Guilherme Castro', nascimento: '15/03/2000', email: 'guilherme.castro@email.com', celular: '(11) 99999-1234', turma: 'Turma Violão', ativo: true, faltas: 2, totalAulas: 20 }
   ])
   
   const toggleStatus = (index) => {
@@ -327,9 +323,14 @@ function Gerenciamento() {
           <span></span>
         </button>
         <div className="nav-brand">Gerenciamento de Alunos</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -341,8 +342,7 @@ function Gerenciamento() {
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
-          <li><Link to="/configuracoes-admin">Configurações</Link></li>
-        </ul>
+          </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
       
@@ -422,8 +422,8 @@ function Gerenciamento() {
                       <td>{aluno.celular}</td>
                       <td>
                         <div className="action-buttons">
-                          <button className="action-btn view">👁️</button>
-                          <button className="action-btn edit">✏️</button>
+                          <button className="action-btn view">Ver</button>
+                          <button className="action-btn edit" onClick={() => navigate(`/editar-aluno/${aluno.ra}`)}>Editar</button>
                           <button 
                             className={`action-btn toggle ${aluno.ativo ? 'deactivate' : 'activate'}`}
                             onClick={() => toggleStatus(originalIndex)}
@@ -512,9 +512,14 @@ function PerfilAluno() {
           <span></span>
         </button>
         <div className="nav-brand">Perfil do Aluno</div>
-        <button className="logout-btn" onClick={() => navigate('/gerenciamento')}>
-          Voltar
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => navigate('/gerenciamento')}>
+            Voltar
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -526,7 +531,6 @@ function PerfilAluno() {
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
-          <li><Link to="/configuracoes-admin">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -644,8 +648,8 @@ function DashboardProfessor() {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   
   const minhasTurmas = [
-    { nome: 'Turma Violão', alunos: 8, presentes: 6, ausentes: 2 },
-    { nome: 'Turma Piano', alunos: 6, presentes: 5, ausentes: 1 }
+    { nome: 'Turma Violão', alunos: 1, presentes: 1, ausentes: 0 },
+    { nome: 'Turma Piano', alunos: 0, presentes: 0, ausentes: 0 }
   ]
   
   useEffect(() => {
@@ -665,9 +669,14 @@ function DashboardProfessor() {
           <span></span>
         </button>
         <div className="nav-brand">Dashboard Professor</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -678,7 +687,6 @@ function DashboardProfessor() {
           <li><Link to="/minhas-turmas">Minhas Turmas</Link></li>
           <li><Link to="/chamada-professor">Chamada</Link></li>
           <li><Link to="/relatorios-professor">Relatórios</Link></li>
-          <li><Link to="/configuracoes-professor">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -738,15 +746,15 @@ function DashboardProfessor() {
             <h3>Resumo do Dia</h3>
             <div className="resumo-stats">
               <div className="stat-item">
-                <span className="stat-number">14</span>
+                <span className="stat-number">1</span>
                 <span className="stat-label">Total Alunos</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">11</span>
+                <span className="stat-number">1</span>
                 <span className="stat-label">Presentes</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">3</span>
+                <span className="stat-number">0</span>
                 <span className="stat-label">Ausentes</span>
               </div>
             </div>
@@ -755,9 +763,8 @@ function DashboardProfessor() {
           <div className="acoes-section">
             <h3>Ações Rápidas</h3>
             <div className="action-buttons">
-              <button className="action-card">Fazer Chamada</button>
               <button className="action-card">Ver Relatórios</button>
-              <button className="action-card">Gerenciar Turmas</button>
+              <button className="action-card" onClick={() => navigate('/minhas-turmas')}>Gerenciar Turmas</button>
             </div>
           </div>
         </div>
@@ -812,9 +819,14 @@ function CriarTurmas() {
           <span></span>
         </button>
         <div className="nav-brand">Criar Turmas</div>
-        <button className="logout-btn" onClick={() => navigate('/')}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => navigate('/')}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -826,7 +838,6 @@ function CriarTurmas() {
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
-          <li><Link to="/configuracoes-admin">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -919,6 +930,35 @@ function CriarTurmas() {
 function CadastrarAluno() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [showMessage, setShowMessage] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    
+    const userData = new FormData()
+    userData.append('nome', `${formData.get('firstname')} ${formData.get('lastname')}`)
+    userData.append('email', formData.get('email'))
+    userData.append('celular', formData.get('number'))
+    userData.append('senha', formData.get('password'))
+    userData.append('genero', formData.get('gender'))
+    userData.append('turma', formData.get('turma'))
+    
+    try {
+      await UsuarioService.cadastrar(userData)
+      setMessage({ type: 'success', text: '✅ Aluno cadastrado com sucesso!' })
+      setShowMessage(true)
+      setTimeout(() => {
+        navigate('/gerenciamento')
+      }, 2000)
+    } catch (error) {
+      console.error('Erro completo:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido'
+      setMessage({ type: 'error', text: `❌ Erro ao cadastrar aluno: ${errorMessage}` })
+      setShowMessage(true)
+    }
+  }
   
   return (
     <div className="cadastro-page">
@@ -929,9 +969,14 @@ function CadastrarAluno() {
           <span></span>
         </button>
         <div className="nav-brand">Cadastrar Aluno</div>
-        <button className="logout-btn" onClick={() => navigate('/')}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => navigate('/')}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -943,7 +988,6 @@ function CadastrarAluno() {
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
-          <li><Link to="/configuracoes-admin">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -953,7 +997,7 @@ function CadastrarAluno() {
             <img src="" alt="" />
           </div>
           <div className="form">
-            <form action="#">
+            <form onSubmit={handleSubmit}>
               <div className="form-header">
                 <div className="title">
                   <h1>Cadastrar Aluno</h1>
@@ -983,6 +1027,16 @@ function CadastrarAluno() {
                 <div className="input-box">
                   <label htmlFor="confirmPassword">Confirme sua Senha</label>
                   <input id="confirmPassword" type="password" name="confirmPassword" className="input-field" placeholder="Digite a senha novamente" required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="turma">Turma</label>
+                  <select id="turma" name="turma" className="input-field" required>
+                    <option value="">Selecione a turma</option>
+                    <option value="Turma Violão">Turma Violão</option>
+                    <option value="Turma Piano">Turma Piano</option>
+                    <option value="Turma Bateria">Turma Bateria</option>
+                    <option value="Turma Trompete">Turma Trompete</option>
+                  </select>
                 </div>
               </div>
               <div className="gender-inputs">
@@ -1019,12 +1073,8 @@ function ChamadaProfessor(){
 
   
   const chamadas = [
-    { data: '2024-01-15', turma: 'Turma Violão', aluno: 'Alan Teste Fulano', status: 'Presente' },
-    { data: '2024-01-15', turma: 'Turma Violão', aluno: 'Diego Lima', status: 'Presente' },
-    { data: '2024-01-15', turma: 'Turma Violão', aluno: 'Leonardo Batista', status: 'Ausente' },
-    { data: '2024-01-14', turma: 'Turma Piano', aluno: 'Bruno César', status: 'Presente' },
-    { data: '2024-01-14', turma: 'Turma Piano', aluno: 'João Nogueira', status: 'Presente' },
-    { data: '2024-01-14', turma: 'Turma Piano', aluno: 'Luan da Silva', status: 'Ausente' }
+    { data: '2024-01-15', turma: 'Turma Violão', aluno: 'Guilherme Castro', status: 'Presente' },
+    { data: '2024-01-14', turma: 'Turma Piano', aluno: 'Guilherme Castro', status: 'Presente' }
   ]
   
   const chamadasFiltradas = chamadas.filter(c => c.turma === turmaSelecionada)
@@ -1040,9 +1090,14 @@ function ChamadaProfessor(){
           <span></span>
         </button>
         <div className="nav-brand">Chamada</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -1053,7 +1108,6 @@ function ChamadaProfessor(){
           <li><Link to="/minhas-turmas">Minhas Turmas</Link></li>
           <li><Link to="/chamada-professor">Chamada</Link></li>
           <li><Link to="/relatorios-professor">Relatórios</Link></li>
-          <li><Link to="/configuracoes-professor">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -1129,8 +1183,8 @@ function MinhasTurmas() {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   
   const turmas = [
-    { id: 1, nome: 'Turma Violão', alunos: 8, horario: '14:00 - 16:00', sala: 'Sala 101' },
-    { id: 2, nome: 'Turma Piano', alunos: 6, horario: '16:00 - 18:00', sala: 'Sala 102' }
+    { id: 1, nome: 'Turma Violão', alunos: 1, horario: '14:00 - 16:00', sala: 'Sala 101' },
+    { id: 2, nome: 'Turma Piano', alunos: 0, horario: '16:00 - 18:00', sala: 'Sala 102' }
   ]
   
   return (
@@ -1142,9 +1196,14 @@ function MinhasTurmas() {
           <span></span>
         </button>
         <div className="nav-brand">Minhas Turmas</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -1155,7 +1214,6 @@ function MinhasTurmas() {
           <li><Link to="/minhas-turmas">Minhas Turmas</Link></li>
           <li><Link to="/chamada-professor">Chamada</Link></li>
           <li><Link to="/relatorios-professor">Relatórios</Link></li>
-          <li><Link to="/configuracoes-professor">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -1190,10 +1248,123 @@ function MinhasTurmas() {
                 <p><strong>Sala:</strong> {turma.sala}</p>
               </div>
               <div className="turma-actions">
-                <button className="btn-primary">Ver Alunos</button>
+                <button className="btn-primary" onClick={() => navigate(`/ver-alunos-turma/${turma.id}`)}>Ver Alunos</button>
               </div>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function VerAlunosTurma() {
+  const navigate = useNavigate()
+  const { turmaId } = useParams()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  
+  const turmas = {
+    1: { nome: 'Turma Violão', alunos: [{ id: 1, nome: 'Guilherme Castro', ra: 1, email: 'guilherme.castro@email.com', telefone: '(11) 99999-1234' }] },
+    2: { nome: 'Turma Piano', alunos: [] }
+  }
+  
+  const turma = turmas[turmaId]
+  
+  if (!turma) {
+    return <div>Turma não encontrada</div>
+  }
+  
+  return (
+    <div className="dashboard">
+      <nav className="dashboard-nav">
+        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div className="nav-brand">{turma.nome} - Alunos</div>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
+      </nav>
+      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <h3>Menu</h3>
+        </div>
+        <ul className="sidebar-menu">
+          <li><Link to="/dashboard-professor">Dashboard</Link></li>
+          <li><Link to="/minhas-turmas">Minhas Turmas</Link></li>
+          <li><Link to="/chamada-professor">Chamada</Link></li>
+          <li><Link to="/relatorios-professor">Relatórios</Link></li>
+        </ul>
+      </div>
+      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
+      
+      {showLogoutModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h3>Confirmar Saída</h3>
+            <p>Tem certeza que deseja sair da sua conta?</p>
+            <div className="modal-buttons">
+              <button className="cancel-btn" onClick={() => setShowLogoutModal(false)}>Cancelar</button>
+              <button className="confirm-btn" onClick={() => navigate('/')}>Sair</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="main-content">
+        <div className="top-bar">
+          <div className="breadcrumb">
+            <span className="dashboard-title">{turma.nome} - Alunos</span>
+          </div>
+        </div>
+        
+        <div className="alunos-container">
+          <button className="back-btn" onClick={() => navigate('/minhas-turmas')}>← Voltar</button>
+          {turma.alunos.length > 0 ? (
+            <div className="students-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>R.A.</th>
+                    <th>Nome</th>
+                    <th>Email</th>
+                    <th>Telefone</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {turma.alunos.map(aluno => (
+                    <tr key={aluno.id}>
+                      <td>{aluno.ra}</td>
+                      <td>
+                        <div className="student-info">
+                          <span className="student-icon">👥</span>
+                          {aluno.nome}
+                        </div>
+                      </td>
+                      <td>{aluno.email}</td>
+                      <td>{aluno.telefone}</td>
+                      <td>
+                        <button className="action-btn view" onClick={() => navigate(`/perfil-aluno-professor/${aluno.id}`)}>Ver Perfil</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="no-students">
+              <p>Nenhum aluno matriculado nesta turma.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1233,9 +1404,14 @@ function PerfilAlunoProfessor() {
           <span></span>
         </button>
         <div className="nav-brand">Perfil do Aluno</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -1246,7 +1422,7 @@ function PerfilAlunoProfessor() {
           <li><Link to="/minhas-turmas">Minhas Turmas</Link></li>
           <li><Link to="/chamada-professor">Chamada</Link></li>
           <li><Link to="/relatorios-professor">Relatórios</Link></li>
-          <li><Link to="/configuracoes-professor">Configurações</Link></li>
+
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -1357,9 +1533,14 @@ function RelatoriosProfessor() {
           <span></span>
         </button>
         <div className="nav-brand">Relatórios</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -1370,7 +1551,6 @@ function RelatoriosProfessor() {
           <li><Link to="/minhas-turmas">Minhas Turmas</Link></li>
           <li><Link to="/chamada-professor">Chamada</Link></li>
           <li><Link to="/relatorios-professor">Relatórios</Link></li>
-          <li><Link to="/configuracoes-professor">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -1417,96 +1597,6 @@ function RelatoriosProfessor() {
   )
 }
 
-function ConfiguracoesProfessor() {
-  const navigate = useNavigate()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
-  
-  return (
-    <div className="dashboard">
-      <nav className="dashboard-nav">
-        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <div className="nav-brand">Configurações</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
-      </nav>
-      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <h3>Menu</h3>
-        </div>
-        <ul className="sidebar-menu">
-          <li><Link to="/dashboard-professor">Dashboard</Link></li>
-          <li><Link to="/minhas-turmas">Minhas Turmas</Link></li>
-          <li><Link to="/chamada-professor">Chamada</Link></li>
-          <li><Link to="/relatorios-professor">Relatórios</Link></li>
-          <li><Link to="/configuracoes-professor">Configurações</Link></li>
-        </ul>
-      </div>
-      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
-      
-      {showLogoutModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Confirmar Saída</h3>
-            <p>Tem certeza que deseja sair da sua conta?</p>
-            <div className="modal-buttons">
-              <button className="cancel-btn" onClick={() => setShowLogoutModal(false)}>Cancelar</button>
-              <button className="confirm-btn" onClick={() => navigate('/')}>Sair</button>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      <div className="main-content">
-        <div className="top-bar">
-          <div className="breadcrumb">
-            <span className="dashboard-title">Configurações</span>
-          </div>
-        </div>
-        
-        <div className="config-container">
-          <div className="config-section">
-            <h3>Perfil</h3>
-            <div className="config-item">
-              <label>Nome:</label>
-              <input type="text" defaultValue="Prof. Silva" className="config-input" />
-            </div>
-            <div className="config-item">
-              <label>Email:</label>
-              <input type="email" defaultValue="prof.silva@escola.com" className="config-input" />
-            </div>
-            <button className="btn-primary">Salvar Alterações</button>
-          </div>
-          
-          <div className="config-section">
-            <h3>Notificações</h3>
-            <div className="config-item">
-              <label>
-                <input type="checkbox" defaultChecked /> Receber notificações por email
-              </label>
-            </div>
-            <div className="config-item">
-              <label>
-                <input type="checkbox" defaultChecked /> Alertas de baixa frequência
-              </label>
-            </div>
-          </div>
-          
-          <div className="config-section">
-            <h3>Segurança</h3>
-            <button className="btn-secondary">Alterar Senha</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function RelatoriosAdmin() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -1521,9 +1611,14 @@ function RelatoriosAdmin() {
           <span></span>
         </button>
         <div className="nav-brand">Relatórios</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -1535,7 +1630,6 @@ function RelatoriosAdmin() {
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
-          <li><Link to="/configuracoes-admin">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -1597,7 +1691,137 @@ function RelatoriosAdmin() {
   )
 }
 
-function ConfiguracoesAdmin() {
+function EditarAluno() {
+  const navigate = useNavigate()
+  const { ra } = useParams()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showMessage, setShowMessage] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
+  
+  const alunos = [
+    { ra: 1, nome: 'Guilherme Castro', nascimento: '15/03/2000', email: 'guilherme.castro@email.com', celular: '(11) 99999-1234', turma: 'Turma Violão', ativo: true, faltas: 2, totalAulas: 20 }
+  ]
+  
+  const aluno = alunos.find(a => a.ra === parseInt(ra))
+  
+  if (!aluno) {
+    return <div>Aluno não encontrado</div>
+  }
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    
+    const userData = new FormData()
+    userData.append('nome', formData.get('nome'))
+    userData.append('email', formData.get('email'))
+    userData.append('celular', formData.get('celular'))
+    userData.append('turma', formData.get('turma'))
+    
+    try {
+      await UsuarioService.update(aluno.ra, userData)
+      setMessage({ type: 'success', text: '✅ Aluno atualizado com sucesso!' })
+      setShowMessage(true)
+      setTimeout(() => {
+        navigate('/gerenciamento')
+      }, 2000)
+    } catch (error) {
+      setMessage({ type: 'error', text: `❌ Erro ao atualizar aluno: ${error.message}` })
+      setShowMessage(true)
+    }
+  }
+  
+  return (
+    <div className="cadastro-page">
+      <nav className="dashboard-nav">
+        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div className="nav-brand">Editar Aluno</div>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => navigate('/gerenciamento')}>
+            Voltar
+          </button>
+        </div>
+      </nav>
+      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <h3>Menu</h3>
+        </div>
+        <ul className="sidebar-menu">
+          <li><Link to="/dashboard">Dashboard</Link></li>
+          <li><Link to="/cadastrar-aluno">Cadastrar Aluno</Link></li>
+          <li><Link to="/gerenciamento">Gerenciamento</Link></li>
+          <li><Link to="/criar-turmas">Criar Turmas</Link></li>
+          <li><Link to="/relatorios-admin">Relatórios</Link></li>
+        </ul>
+      </div>
+      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
+      
+      {showMessage && (
+        <div className="modal-overlay">
+          <div className="modal message-modal">
+            <div className={`message-content ${message.type}`}>
+              <p>{message.text}</p>
+              <button className="message-btn" onClick={() => setShowMessage(false)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="cadastro-content">
+        <div className="container">
+          <div className="form-image">
+            <div className="edit-icon">✏️</div>
+            <h2>Editar Aluno</h2>
+          </div>
+          <div className="form">
+            <form onSubmit={handleSubmit}>
+              <div className="form-header">
+                <div className="title">
+                  <h1>Editar Aluno</h1>
+                </div>
+              </div>
+              <div className="input-group">
+                <div className="input-box">
+                  <label htmlFor="nome">Nome Completo</label>
+                  <input id="nome" type="text" name="nome" className="input-field" defaultValue={aluno.nome} required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="email">E-mail</label>
+                  <input id="email" type="email" name="email" className="input-field" defaultValue={aluno.email} required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="celular">Celular</label>
+                  <input id="celular" type="tel" name="celular" className="input-field" defaultValue={aluno.celular} required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="turma">Turma</label>
+                  <select id="turma" name="turma" className="input-field" defaultValue={aluno.turma} required>
+                    <option value="Turma Violão">Turma Violão</option>
+                    <option value="Turma Piano">Turma Piano</option>
+                    <option value="Turma Bateria">Turma Bateria</option>
+                    <option value="Turma Trompete">Turma Trompete</option>
+                  </select>
+                </div>
+              </div>
+              <div className="continue-button">
+                <button type="submit">Atualizar Aluno</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Perfil() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
@@ -1610,10 +1834,15 @@ function ConfiguracoesAdmin() {
           <span></span>
           <span></span>
         </button>
-        <div className="nav-brand">Configurações</div>
-        <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-          Sair
-        </button>
+        <div className="nav-brand">Meu Perfil</div>
+        <div className="nav-actions">
+          <button className="profile-btn active">
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
+            Sair
+          </button>
+        </div>
       </nav>
       <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
@@ -1625,7 +1854,6 @@ function ConfiguracoesAdmin() {
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
-          <li><Link to="/configuracoes-admin">Configurações</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
@@ -1646,61 +1874,67 @@ function ConfiguracoesAdmin() {
       <div className="main-content">
         <div className="top-bar">
           <div className="breadcrumb">
-            <span className="dashboard-title">Configurações do Sistema</span>
+            <span className="dashboard-title">Meu Perfil</span>
           </div>
         </div>
         
-        <div className="config-container">
-          <div className="config-section">
-            <h3>Perfil Administrativo</h3>
-            <div className="config-item">
-              <label>Nome:</label>
-              <input type="text" defaultValue="Administrador" className="config-input" />
+        <div className="perfil-page">
+          <div className="perfil-card-main">
+            <div className="perfil-avatar-section">
+              <div className="avatar-large">P</div>
+              <h2>Administrador</h2>
+              <p className="perfil-role">Administrador do Sistema</p>
             </div>
-            <div className="config-item">
-              <label>Email:</label>
-              <input type="email" defaultValue="admin@escola.com" className="config-input" />
+            
+            <div className="perfil-info-section">
+              <div className="info-card">
+                <h3>Informações Pessoais</h3>
+                <div className="info-item">
+                  <span className="info-label">Nome:</span>
+                  <span className="info-value">Administrador</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Email:</span>
+                  <span className="info-value">admin@escola.com</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Cargo:</span>
+                  <span className="info-value">Administrador</span>
+                </div>
+                <div className="info-item">
+                  <span className="info-label">Desde:</span>
+                  <span className="info-value">Janeiro 2023</span>
+                </div>
+              </div>
+              
+              <div className="info-card">
+                <h3>Configurações</h3>
+                <div className="config-actions">
+                  <button className="config-btn">Alterar Senha</button>
+                  <button className="config-btn">Notificações</button>
+                  <button className="config-btn">Tema</button>
+                  <button className="config-btn">Preferências</button>
+                </div>
+              </div>
+              
+              <div className="info-card">
+                <h3>Estatísticas</h3>
+                <div className="stats-grid">
+                  <div className="stat-item">
+                    <span className="stat-number">1</span>
+                    <span className="stat-label">Alunos Cadastrados</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-number">4</span>
+                    <span className="stat-label">Turmas Criadas</span>
+                  </div>
+                  <div className="stat-item">
+                    <span className="stat-number">30</span>
+                    <span className="stat-label">Dias Ativo</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <button className="btn-primary">Salvar Alterações</button>
-          </div>
-          
-          <div className="config-section">
-            <h3>Configurações do Sistema</h3>
-            <div className="config-item">
-              <label>Nome da Instituição:</label>
-              <input type="text" defaultValue="Escola Exemplo" className="config-input" />
-            </div>
-            <div className="config-item">
-              <label>Limite de Faltas (%):</label>
-              <input type="number" defaultValue="25" className="config-input" />
-            </div>
-            <button className="btn-primary">Salvar Configurações</button>
-          </div>
-          
-          <div className="config-section">
-            <h3>Notificações</h3>
-            <div className="config-item">
-              <label>
-                <input type="checkbox" defaultChecked /> Alertas de frequência baixa
-              </label>
-            </div>
-            <div className="config-item">
-              <label>
-                <input type="checkbox" defaultChecked /> Relatórios automáticos
-              </label>
-            </div>
-            <div className="config-item">
-              <label>
-                <input type="checkbox" defaultChecked /> Notificações por email
-              </label>
-            </div>
-          </div>
-          
-          <div className="config-section">
-            <h3>Segurança</h3>
-            <button className="btn-secondary">Alterar Senha</button>
-            <button className="btn-secondary">Gerenciar Usuários</button>
-            <button className="btn-secondary">Backup do Sistema</button>
           </div>
         </div>
       </div>
@@ -1715,17 +1949,18 @@ function App() {
         <Route path="/" element={<Welcome />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/perfil" element={<Perfil />} />
         <Route path="/cadastrar-aluno" element={<CadastrarAluno />} />
         <Route path="/gerenciamento" element={<Gerenciamento />} />
         <Route path="/criar-turmas" element={<CriarTurmas />} />
         <Route path="/aluno/:ra" element={<PerfilAluno />} />
+        <Route path="/editar-aluno/:ra" element={<EditarAluno />} />
         <Route path="/relatorios-admin" element={<RelatoriosAdmin />} />
-        <Route path="/configuracoes-admin" element={<ConfiguracoesAdmin />} />
         <Route path="/dashboard-professor" element={<DashboardProfessor />} />
         <Route path="/minhas-turmas" element={<MinhasTurmas />} />
+        <Route path="/ver-alunos-turma/:turmaId" element={<VerAlunosTurma />} />
         <Route path="/chamada-professor" element={<ChamadaProfessor />} />
         <Route path="/relatorios-professor" element={<RelatoriosProfessor />} />
-        <Route path="/configuracoes-professor" element={<ConfiguracoesProfessor />} />
         <Route path="/perfil-aluno-professor/:alunoId" element={<PerfilAlunoProfessor />} />
       </Routes>
     </BrowserRouter>

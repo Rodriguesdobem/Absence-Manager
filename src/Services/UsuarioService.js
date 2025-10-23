@@ -1,5 +1,5 @@
 import http from '../common/http-common';
-const API_URL = "/api/v1/usuario";
+const API_URL = "/api/v1/usuario/";
 
 const findAll = () => {
     return http.mainInstance.get(API_URL + 'listar');
@@ -58,19 +58,19 @@ const cadastrar = data => {
     formData.append('senha', data.senha);
     formData.append('dataNascimento', data.dataNascimento);
 
-    return http.multipartInstance.post(API_URL + "/cadastrar", formData);
+    return http.multipartInstance.post(API_URL + "cadastrar", formData);
 };
 
 const update = (id, data) => {
-    return http.multipartInstance.put(API_URL + `/atualizar/${id}`, data);
+    return http.multipartInstance.put(API_URL + `atualizar/${id}`, data);
 };
 
 const inativar = (id) => {
-    return http.multipartInstance.put(API_URL + `/inativar/${id}`);
+    return http.multipartInstance.put(API_URL + `inativar/${id}`);
 };
 
 const reativar = (id) => {
-    return http.multipartInstance.put(API_URL + `/reativar/${id}`);
+    return http.multipartInstance.put(API_URL + `reativar/${id}`);
 };
 
 
@@ -79,7 +79,7 @@ const alterarSenha = (id, data) => {
     const formData = new FormData();
     formData.append('senha', data.senha);
  
-    return http.mainInstance.put(API_URL + `alterarSenha/${id}`, formData);
+    return http.multipartInstance.put(API_URL + `alterarSenha/${id}`, formData);
 };
 
 const findByNome = nome => {
@@ -95,7 +95,7 @@ const UsuarioService = {
     signin,
     logout,
     getCurrentUser,
-    create,
+    /*create,*/
     update,
     inativar,
     reativar,

@@ -1,12 +1,12 @@
 import http from '../common/http-common';
-const API_URL = "/Usuário/v1/api";
+const API_URL = "/api/v1/usuario";
 
 const findAll = () => {
-    return http.mainInstance.get(API_URL + 'findAll');
+    return http.mainInstance.get(API_URL + 'listar');
 };
 
 const findById = (id) => {
-    return http.mainInstance.get(API_URL + `findById/${id}`);
+    return http.mainInstance.get(API_URL + `buscar/${id}`);
 };
 
 const signup = (nome, email, password) => {
@@ -37,9 +37,6 @@ const getCurrentUser = () => {
     return JSON.parse(localStorage.getItem("user"));
 };
 
-const cadastrar = data => {
-    return http.mainInstance.post(API_URL + "create", data);
-};
 
 const create = data => {
     const formData = new FormData();
@@ -51,7 +48,7 @@ const create = data => {
 };
 
 const update = (id, data) => {
-    return http.multipartInstance.put(API_URL + `update/${id}`, data);
+    return http.multipartInstance.put(API_URL + `atualizar/${id}`, data);
 };
 
 const inativar = (id) => {
@@ -60,6 +57,10 @@ const inativar = (id) => {
 
 const reativar = (id) => {
     return http.multipartInstance.put(API_URL + `reativar/${id}`);
+};
+
+const cadastrar = () => {
+    return http.multipartInstance.post(API_URL + `cadastrar`);
 };
 
 const alterarSenha = (id, data) => {
@@ -75,13 +76,13 @@ const findByNome = nome => {
 
 
 const UsuarioService = {
+    cadastrar,
     findAll,
     findById,
     signup,
     signin,
     logout,
     getCurrentUser,
-    cadastrar,
     create,
     update,
     inativar,

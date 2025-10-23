@@ -174,6 +174,7 @@ function Dashboard() {
         <ul className="sidebar-menu">
           <li><Link to="/dashboard">Dashboard</Link></li>
           <li><Link to="/cadastrar-aluno">Cadastrar Aluno</Link></li>
+          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
@@ -339,6 +340,7 @@ function Gerenciamento() {
         <ul className="sidebar-menu">
           <li><Link to="/dashboard">Dashboard</Link></li>
           <li><Link to="/cadastrar-aluno">Cadastrar Aluno</Link></li>
+          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
@@ -927,6 +929,148 @@ function CriarTurmas() {
   )
 }
 
+function CadastrarUsuario() {
+  const navigate = useNavigate()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [showMessage, setShowMessage] = useState(false)
+  const [message, setMessage] = useState({ type: '', text: '' })
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target)
+    
+    try {
+      await UsuarioService.create({
+        nome: `${formData.get('firstname')} ${formData.get('lastname')}`,
+        email: formData.get('email'),
+        nivelAcesso: formData.get('nivelAcesso')
+      })
+      setMessage({ type: 'success', text: '✅ Usuário cadastrado com sucesso!' })
+      setShowMessage(true)
+      setTimeout(() => {
+        navigate('/gerenciamento')
+      }, 2000)
+    } catch (error) {
+      console.error('Erro completo:', error)
+      const errorMessage = error.response?.data?.message || error.message || 'Erro desconhecido'
+      setMessage({ type: 'error', text: `❌ Erro ao cadastrar usuário: ${errorMessage}` })
+      setShowMessage(true)
+    }
+  }
+  
+  return (
+    <div className="cadastro-page">
+      <nav className="dashboard-nav">
+        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+        <div className="nav-brand">Cadastrar Usuário</div>
+        <div className="nav-actions">
+          <button className="profile-btn" onClick={() => navigate('/perfil')}>
+            👤
+          </button>
+          <button className="logout-btn" onClick={() => navigate('/')}>
+            Sair
+          </button>
+        </div>
+      </nav>
+      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
+        <div className="sidebar-header">
+          <h3>Menu</h3>
+        </div>
+        <ul className="sidebar-menu">
+          <li><Link to="/dashboard">Dashboard</Link></li>
+          <li><Link to="/cadastrar-aluno">Cadastrar Aluno</Link></li>
+          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
+          <li><Link to="/gerenciamento">Gerenciamento</Link></li>
+          <li><Link to="/criar-turmas">Criar Turmas</Link></li>
+          <li><Link to="/relatorios-admin">Relatórios</Link></li>
+        </ul>
+      </div>
+      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
+      
+      {showMessage && (
+        <div className="modal-overlay">
+          <div className="modal message-modal">
+            <div className={`message-content ${message.type}`}>
+              <p>{message.text}</p>
+              <button className="message-btn" onClick={() => setShowMessage(false)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="cadastro-content">
+        <div className="container">
+          <div className="form-image">
+            <img src="" alt="" />
+          </div>
+          <div className="form">
+            <form onSubmit={handleSubmit}>
+              <div className="form-header">
+                <div className="title">
+                  <h1>Cadastrar Usuário</h1>
+                </div>
+              </div>
+              <div className="input-group">
+                <div className="input-box">
+                  <label htmlFor="firstname">Primeiro nome</label>
+                  <input id="firstname" type="text" name="firstname" className="input-field" placeholder="Digite o primeiro nome" required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="lastname">Sobrenome</label>
+                  <input id="lastname" type="text" name="lastname" className="input-field" placeholder="Digite o sobrenome" required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="email">E-mail</label>
+                  <input id="email" type="email" name="email" className="input-field" placeholder="Digite o email" required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="password">Senha</label>
+                  <input id="password" type="password" name="password" className="input-field" placeholder="Digite a senha" required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="dataNascimento">Data de Nascimento</label>
+                  <input id="dataNascimento" type="date" name="dataNascimento" className="input-field" required />
+                </div>
+                <div className="input-box">
+                  <label htmlFor="nivelAcesso">Nível de Acesso</label>
+                  <select id="nivelAcesso" name="nivelAcesso" className="input-field" required>
+                    <option value="">Selecione o nível</option>
+                    <option value="ADMIN">Administrador</option>
+                    <option value="PROFESSOR">Professor</option>
+                    <option value="ALUNO">Aluno</option>
+                  </select>
+                </div>
+              </div>
+              <div className="gender-inputs">
+                <div className="gender-title">
+                  <h6>Sexo</h6>
+                </div>
+                <div className="gender-groups">
+                  <div className="gender-input">
+                    <input id="female" type="radio" name="gender" value="F" />
+                    <label htmlFor="female">Feminino</label>
+                  </div>
+                  <div className="gender-input">
+                    <input id="male" type="radio" name="gender" value="M" />
+                    <label htmlFor="male">Masculino</label>
+                  </div>
+                </div>
+              </div>
+              <div className="continue-button">
+                <button type="submit">Cadastrar Usuário</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function CadastrarAluno() {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -946,7 +1090,11 @@ function CadastrarAluno() {
     userData.append('turma', formData.get('turma'))
     
     try {
-      await UsuarioService.cadastrar(userData)
+      await UsuarioService.create({
+        nome: `${formData.get('firstname')} ${formData.get('lastname')}`,
+        email: formData.get('email'),
+        nivelAcesso: 'ALUNO'
+      })
       setMessage({ type: 'success', text: '✅ Aluno cadastrado com sucesso!' })
       setShowMessage(true)
       setTimeout(() => {
@@ -985,12 +1133,25 @@ function CadastrarAluno() {
         <ul className="sidebar-menu">
           <li><Link to="/dashboard">Dashboard</Link></li>
           <li><Link to="/cadastrar-aluno">Cadastrar Aluno</Link></li>
+          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
         </ul>
       </div>
       {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
+      
+      {showMessage && (
+        <div className="modal-overlay">
+          <div className="modal message-modal">
+            <div className={`message-content ${message.type}`}>
+              <p>{message.text}</p>
+              <button className="message-btn" onClick={() => setShowMessage(false)}>OK</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="cadastro-content">
         <div className="container">
           <div className="form-image">
@@ -1950,7 +2111,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/perfil" element={<Perfil />} />
-        <Route path="/cadastrar-aluno" element={<CadastrarAluno />} />
+        <Route path="/cadastrar-aluno" element={<CadastrarUsuario />} />
+        <Route path="/cadastrar-usuario" element={<CadastrarUsuario />} />
         <Route path="/gerenciamento" element={<Gerenciamento />} />
         <Route path="/criar-turmas" element={<CriarTurmas />} />
         <Route path="/aluno/:ra" element={<PerfilAluno />} />

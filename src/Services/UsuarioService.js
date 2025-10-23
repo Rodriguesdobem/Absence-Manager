@@ -38,7 +38,7 @@ const getCurrentUser = () => {
 };
 
 
-const create = data => {
+/*const create = data => {
     const formData = new FormData();
     formData.append('nome', data.nome);
     formData.append('email', data.email);
@@ -47,6 +47,18 @@ const create = data => {
     formData.append('dataNascimento', data.dataNascimento);
 
     return http.mainInstance.post(API_URL + "/cadastrar", formData);
+};
+*/
+
+const cadastrar = data => {
+    const formData = new FormData();
+    formData.append('nome', data.nome);
+    formData.append('email', data.email);
+    formData.append('nivelAcesso', data.nivelAcesso);
+    formData.append('senha', data.senha);
+    formData.append('dataNascimento', data.dataNascimento);
+
+    return http.multipartInstance.post(API_URL + "/cadastrar", formData);
 };
 
 const update = (id, data) => {
@@ -61,9 +73,7 @@ const reativar = (id) => {
     return http.multipartInstance.put(API_URL + `/reativar/${id}`);
 };
 
-const cadastrar = () => {
-    return http.multipartInstance.post(API_URL + `cadastrar`);
-};
+
 
 const alterarSenha = (id, data) => {
     const formData = new FormData();

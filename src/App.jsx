@@ -1040,25 +1040,10 @@ function CadastrarUsuario() {
                 <div className="input-box">
                   <label htmlFor="nivelAcesso">Nível de Acesso</label>
                   <select id="nivelAcesso" name="nivelAcesso" className="input-field" required>
-                    <option value="">Selecione o nível</option>
+                    <option value="" disabled selected>Selecione o nível</option>
                     <option value="PROFESSOR">Professor</option>
                     <option value="ALUNO">Aluno</option>
                   </select>
-                </div>
-              </div>
-              <div className="gender-inputs">
-                <div className="gender-title">
-                  <h6>Sexo</h6>
-                </div>
-                <div className="gender-groups">
-                  <div className="gender-input">
-                    <input id="female" type="radio" name="gender" value="F" />
-                    <label htmlFor="female">Feminino</label>
-                  </div>
-                  <div className="gender-input">
-                    <input id="male" type="radio" name="gender" value="M" />
-                    <label htmlFor="male">Masculino</label>
-                  </div>
                 </div>
               </div>
               <div className="continue-button">

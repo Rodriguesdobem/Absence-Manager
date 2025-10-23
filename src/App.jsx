@@ -943,7 +943,9 @@ function CadastrarUsuario() {
       await UsuarioService.create({
         nome: `${formData.get('firstname')} ${formData.get('lastname')}`,
         email: formData.get('email'),
-        nivelAcesso: formData.get('nivelAcesso')
+        nivelAcesso: formData.get('nivelAcesso'),
+        senha: formData.get('password'),
+        dataNascimento: formData.get('Data de Nascimento')
       })
       setMessage({ type: 'success', text: '✅ Usuário cadastrado com sucesso!' })
       setShowMessage(true)
@@ -1039,7 +1041,6 @@ function CadastrarUsuario() {
                   <label htmlFor="nivelAcesso">Nível de Acesso</label>
                   <select id="nivelAcesso" name="nivelAcesso" className="input-field" required>
                     <option value="">Selecione o nível</option>
-                    <option value="ADMIN">Administrador</option>
                     <option value="PROFESSOR">Professor</option>
                     <option value="ALUNO">Aluno</option>
                   </select>

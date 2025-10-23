@@ -43,20 +43,22 @@ const create = data => {
     formData.append('nome', data.nome);
     formData.append('email', data.email);
     formData.append('nivelAcesso', data.nivelAcesso);
+    formData.append('senha', data.senha);
+    formData.append('dataNascimento', data.dataNascimento);
 
-    return http.mainInstance.post(API_URL + "create", formData);
+    return http.mainInstance.post(API_URL + "/cadastrar", formData);
 };
 
 const update = (id, data) => {
-    return http.multipartInstance.put(API_URL + `atualizar/${id}`, data);
+    return http.multipartInstance.put(API_URL + `/atualizar/${id}`, data);
 };
 
 const inativar = (id) => {
-    return http.multipartInstance.put(API_URL + `inativar/${id}`);
+    return http.multipartInstance.put(API_URL + `/inativar/${id}`);
 };
 
 const reativar = (id) => {
-    return http.multipartInstance.put(API_URL + `reativar/${id}`);
+    return http.multipartInstance.put(API_URL + `/reativar/${id}`);
 };
 
 const cadastrar = () => {

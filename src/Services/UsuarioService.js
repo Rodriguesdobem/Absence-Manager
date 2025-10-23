@@ -9,11 +9,11 @@ const findById = (id) => {
     return http.mainInstance.get(API_URL + `buscar/${id}`);
 };
 
-const signup = (nome, email, password) => {
+const signup = (nome, email, senha) => {
     return http.mainInstance.post(API_URL + "signup", {
         nome,
         email,
-        password,
+        senha,
     });
 };
 
@@ -66,11 +66,11 @@ const update = (id, data) => {
 };
 
 const inativar = (id) => {
-    return http.multipartInstance.put(API_URL + `inativar/${id}`);
+    return http.mainInstance.put(API_URL + `inativar/${id}`);
 };
 
 const reativar = (id) => {
-    return http.multipartInstance.put(API_URL + `reativar/${id}`);
+    return http.mainInstance.put(API_URL + `reativar/${id}`);
 };
 
 
@@ -85,6 +85,7 @@ const alterarSenha = (id, data) => {
 const findByNome = nome => {
     return http.mainInstance.get(API_URL + `findByNome?nome=${nome}`);
 };
+
 
 
 const UsuarioService = {

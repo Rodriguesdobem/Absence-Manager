@@ -31,4 +31,6 @@ const httpCommom = {
   apiCep,
 };
 
+
+
 export default httpCommom;

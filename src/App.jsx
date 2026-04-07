@@ -1002,7 +1002,7 @@ function RelatoriosAdmin() {
         </div>
         <ul className="sidebar-menu">
           <li><Link to="/dashboard">Dashboard</Link></li>
-                    <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
+          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
@@ -1131,6 +1131,7 @@ function EditarAluno() {
         </div>
         <ul className="sidebar-menu">
           <li><Link to="/dashboard">Dashboard</Link></li>
+          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>
@@ -1225,6 +1226,7 @@ function Perfil() {
         </div>
         <ul className="sidebar-menu">
           <li><Link to="/dashboard">Dashboard</Link></li>
+          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
           <li><Link to="/gerenciamento">Gerenciamento</Link></li>
           <li><Link to="/criar-turmas">Criar Turmas</Link></li>
           <li><Link to="/relatorios-admin">Relatórios</Link></li>

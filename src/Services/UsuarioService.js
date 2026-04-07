@@ -9,11 +9,11 @@ const findById = (id) => {
     return http.mainInstance.get(API_URL + `buscar/${id}`);
 };
 
-const signup = (nome, email, senha) => {
+const signup = (nome, email, password) => {
     return http.mainInstance.post(API_URL + "signup", {
         nome,
         email,
-        senha,
+        password,
     });
 };
 
@@ -46,31 +46,41 @@ const getCurrentUser = () => {
     formData.append('senha', data.senha);
     formData.append('dataNascimento', data.dataNascimento);
 
-    return http.mainInstance.post(API_URL + "/cadastrar", formData);
+    return http.mainInstance.post(API_URL + "cadastrar", formData);
 };
 */
 
 const cadastrar = data => {
+    const dataAtual = new Date();
+    const dataFormatada = dataAtual.toISOString().slice(0, 19);
     const formData = new FormData();
+
     formData.append('nome', data.nome);
     formData.append('email', data.email);
     formData.append('nivelAcesso', data.nivelAcesso);
     formData.append('senha', data.senha);
     formData.append('dataNascimento', data.dataNascimento);
+    formData.append('dataCadastro', dataFormatada);
+     formData.append('rm', data.rm);
 
-    return http.multipartInstance.post(API_URL + "cadastrar", formData);
+    return http.mainInstance.post(API_URL + "cadastrar", formData);
 };
 
 const update = (id, data) => {
+    const formData = new FormData();
+    formData.append('nome', data.nome);
+    formData.append('email', data.email);
+    formData.append('telefone', data.telefone);
+    formData.append('senha', data.senha);
     return http.multipartInstance.put(API_URL + `atualizar/${id}`, data);
 };
 
 const inativar = (id) => {
-    return http.mainInstance.put(API_URL + `inativar/${id}`);
+    return http.multipartInstance.put(API_URL + `inativar/${id}`);
 };
 
 const reativar = (id) => {
-    return http.mainInstance.put(API_URL + `reativar/${id}`);
+    return http.multipartInstance.put(API_URL + `reativar/${id}`);
 };
 
 
@@ -85,7 +95,6 @@ const alterarSenha = (id, data) => {
 const findByNome = nome => {
     return http.mainInstance.get(API_URL + `findByNome?nome=${nome}`);
 };
-
 
 
 const UsuarioService = {

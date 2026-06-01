@@ -1,42 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import UsuarioService from '../Services/UsuarioService'
+import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import SharedNav from '../common/SharedNav'
 
 function CriarTurmas() {
   const navigate = useNavigate()
-  const [menuOpen, setMenuOpen] = useState(false)
-  
+
   return (
-    <div className="cadastro-page">
-      <nav className="dashboard-nav">
-        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <div className="nav-brand">Criar Turmas</div>
-        <div className="nav-actions">
-          <button className="profile-btn" onClick={() => navigate('/perfil')}>
-            👤
-          </button>
-          <button className="logout-btn" onClick={() => navigate('/')}>
-            Sair
-          </button>
-        </div>
-      </nav>
-      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <h3>Menu</h3>
-        </div>
-        <ul className="sidebar-menu">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
-          <li><Link to="/gerenciamento">Gerenciamento</Link></li>
-          <li><Link to="/criar-turmas">Criar Turmas</Link></li>
-          <li><Link to="/relatorios-admin">Relatórios</Link></li>
-        </ul>
-      </div>
-      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
+    <div className="db-root">
+      <SharedNav activeItem="turmas" />
       <div className="cadastro-content">
         <div className="container">
           <div className="form-image">

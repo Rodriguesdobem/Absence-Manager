@@ -1,92 +1,13 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React from 'react'
+import SharedNav from '../common/SharedNav'
 
 function Perfil() {
-  const navigate = useNavigate()
-  const [menuOpen, setMenuOpen] = useState(false)
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
-
   return (
-    <div className="pf-root">
-
-      {/* NAVBAR */}
-      <nav className="pf-nav">
-        <div className="pf-nav-left">
-          <button className="pf-menu-btn" onClick={() => setMenuOpen(o => !o)} title="Menu">
-            <svg viewBox="0 0 20 20" fill="#000" width="18" height="18"><path d="M3 4h14v2H3zm0 5h10v2H3zm0 5h14v2H3z"/></svg>
-          </button>
-          <span className="pf-nav-logo-text">AbsenceManager</span>
-        </div>
-        <div className="pf-nav-center">Meu Perfil</div>
-        <div className="pf-nav-right">
-          <button className="pf-nav-sair" onClick={() => setShowLogoutModal(true)}>Sair</button>
-        </div>
-      </nav>
-
-      {/* SIDEBAR */}
-      <aside className={`hb-sidebar ${menuOpen ? 'hb-sidebar-open' : ''}`}>
-        <div className="hb-sidebar-header">
-          <div className="hb-sidebar-logo">
-            <div className="hb-sidebar-logo-icon">
-              <svg viewBox="0 0 20 20"><path d="M3 4h14v2H3zm0 5h10v2H3zm0 5h14v2H3z"/></svg>
-            </div>
-            <span className="hb-sidebar-logo-text">AbsenceManager</span>
-          </div>
-          <button className="hb-sidebar-close" onClick={() => setMenuOpen(false)} title="Fechar">✕</button>
-        </div>
-        <nav className="hb-sidebar-nav">
-          <div className="hb-sidebar-section-label">Principal</div>
-          <Link className="hb-nav-item" to="/dashboard" onClick={() => setMenuOpen(false)}>
-            <span className="hb-nav-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
-            Dashboard
-          </Link>
-          <div className="hb-sidebar-section-label">Gestão</div>
-          <Link className="hb-nav-item" to="/cadastrar-usuario" onClick={() => setMenuOpen(false)}>
-            <span className="hb-nav-icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></span>
-            Cadastrar Usuário
-          </Link>
-          <Link className="hb-nav-item" to="/gerenciamento" onClick={() => setMenuOpen(false)}>
-            <span className="hb-nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
-            Gerenciamento
-          </Link>
-          <Link className="hb-nav-item" to="/criar-turmas" onClick={() => setMenuOpen(false)}>
-            <span className="hb-nav-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
-            Criar Turmas
-          </Link>
-          <div className="hb-sidebar-divider" />
-          <Link className="hb-nav-item" to="/relatorios-admin" onClick={() => setMenuOpen(false)}>
-            <span className="hb-nav-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
-            Relatórios
-          </Link>
-        </nav>
-        <div className="hb-sidebar-footer">
-          <Link className="hb-sidebar-user" to="/perfil" onClick={() => setMenuOpen(false)}>
-            <div className="hb-sidebar-user-avatar">A</div>
-            <div>
-              <div className="hb-sidebar-user-name">Administrador</div>
-              <div className="hb-sidebar-user-role">Admin do Sistema</div>
-            </div>
-          </Link>
-        </div>
-      </aside>
-      {menuOpen && <div className="hb-sidebar-overlay hb-open" onClick={() => setMenuOpen(false)} />}
-
-      {/* MODAL LOGOUT */}
-      {showLogoutModal && (
-        <div className="pf-modal-overlay">
-          <div className="pf-modal">
-            <h3>Confirmar Saída</h3>
-            <p>Tem certeza que deseja sair da sua conta?</p>
-            <div className="pf-modal-buttons">
-              <button className="pf-cancel-btn" onClick={() => setShowLogoutModal(false)}>Cancelar</button>
-              <button className="pf-confirm-btn" onClick={() => navigate('/')}>Sair</button>
-            </div>
-          </div>
-        </div>
-      )}
+    <div className="db-root">
+      <SharedNav activeItem="perfil" />
 
       {/* MAIN */}
-      <main className="pf-main">
+      <main className="db-main">
         <div className="pf-page-title">Meu <span>Perfil</span></div>
 
         {/* HERO */}
@@ -177,32 +98,6 @@ function Perfil() {
         </div>
       </main>
 
-      {/* FOOTER */}
-      <footer className="pf-footer">
-        <div className="pf-footer-inner">
-          <div className="pf-footer-col">
-            <div className="pf-footer-logo-text">Absence<span>Manager</span></div>
-            <p>Belval, Barueri - SP, 06420-150</p>
-          </div>
-          <div className="pf-footer-col">
-            <div className="pf-footer-col-title">Contatos</div>
-            <p>Sem Email Definido</p>
-            <p>+55 (11) 99999-9999</p>
-          </div>
-          <div className="pf-footer-col">
-            <div className="pf-footer-col-title">Links</div>
-            <a>Home</a><a>Sobre nós</a><a>Contato</a>
-          </div>
-          <div className="pf-footer-col">
-            <div className="pf-footer-col-title">Outros</div>
-            <a>Políticas de Privacidade</a>
-          </div>
-        </div>
-        <div className="pf-footer-bottom">
-          <span>TCC — Informática 3º Ano · 2025</span>
-          <span>AbsenceManager © 2025</span>
-        </div>
-      </footer>
     </div>
   )
 }

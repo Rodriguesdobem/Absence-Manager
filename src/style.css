@@ -2308,3 +2308,26 @@ html {
 /* sidebar user como link */
 a.hb-sidebar-user { text-decoration: none; cursor: pointer; transition: border-color 0.2s, background 0.2s; }
 a.hb-sidebar-user:hover { background: #1a1a28; border-color: rgba(76,201,240,0.25); }
+
+/* ===== PAGE TRANSITION ===== */
+.page-transition {
+  animation-duration: 220ms;
+  animation-fill-mode: both;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+.page-transition-enter {
+  animation-name: ptEnter;
+}
+.page-transition-exit {
+  animation-name: ptExit;
+  pointer-events: none;
+}
+
+@keyframes ptEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ptExit {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}

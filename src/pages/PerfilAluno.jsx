@@ -1,166 +1,127 @@
-import React, { useState, useEffect } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import UsuarioService from '../Services/UsuarioService'
+import React from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import SharedNav from '../common/SharedNav'
+import { TURMAS_DATA } from '../common/turmasData'
+
+// Unifica alunos de todas as turmas
+const getAllAlunos = () => {
+  const alunos = []
+  Object.values(TURMAS_DATA).forEach(turma => {
+    turma.alunos.forEach(aluno => {
+      alunos.push({ ...aluno, turma: turma.nome, ativo: true })
+    })
+  })
+  return alunos
+}
 
 function PerfilAluno() {
   const navigate = useNavigate()
   const { ra } = useParams()
-  const [menuOpen, setMenuOpen] = useState(false)
-  
-  const alunos = [
-    { ra: 1, nome: 'Alan Teste Fulano', nascimento: '01/01/1994', email: 'alan@educante.com', celular: '(11) 99774-7378', turma: 'Turma Violão', ativo: true, faltas: 5, totalAulas: 20 },
-    { ra: 16, nome: 'Augusto', nascimento: '25/09/2010', email: '', celular: '', turma: 'Turma Trompete', ativo: true, faltas: 2, totalAulas: 18 },
-    { ra: 10, nome: 'Bruno César', nascimento: '08/09/2000', email: 'bruno.cesar75@gmail.com', celular: '(11) 99887-7777', turma: 'Turma Piano', ativo: false, faltas: 8, totalAulas: 22 },
-    { ra: 1, nome: 'Diego Lima', nascimento: '10/06/1985', email: 'diegolima7765@hotmail.com', celular: '(41) 99686-8777', turma: 'Turma Violão', ativo: true, faltas: 3, totalAulas: 20 },
-    { ra: 14, nome: 'Gustavo Galvão', nascimento: '12/07/2018', email: '', celular: '', turma: 'Turma Bateria', ativo: false, faltas: 12, totalAulas: 25 },
-    { ra: 9, nome: 'Henrique Dourado', nascimento: '16/06/2001', email: 'henriquedg@hotmail.com', celular: '(21) 98776-6677', turma: 'Turma Trompete', ativo: true, faltas: 1, totalAulas: 18 },
-    { ra: 6, nome: 'João Nogueira', nascimento: '05/04/2000', email: 'joaonogueira567@hotmail.com', celular: '(11) 99877-7666', turma: 'Turma Piano', ativo: true, faltas: 4, totalAulas: 22 },
-    { ra: 3, nome: 'Leonardo Batista', nascimento: '16/04/1999', email: 'leobatista@hotmail.com', celular: '(11) 99885-7766', turma: 'Turma Violão', ativo: true, faltas: 6, totalAulas: 20 },
-    { ra: 7, nome: 'Leonardo Silva', nascimento: '06/05/1985', email: 'leonardosilverno93@gmail.com', celular: '(51) 99489-7776', turma: 'Turma Bateria', ativo: false, faltas: 15, totalAulas: 25 },
-    { ra: 5, nome: 'Luan da Silva', nascimento: '10/02/1996', email: 'luandasilvamkm@hotmail.com', celular: '(71) 99287-7778', turma: 'Turma Piano', ativo: true, faltas: 2, totalAulas: 22 }
-  ]
-  
-  const aluno = alunos.find(a => a.ra === parseInt(ra))
-  
+  const ALUNOS = getAllAlunos()
+  const aluno = ALUNOS.find(a => a.ra === parseInt(ra))
+
   if (!aluno) {
-    return <div>Aluno não encontrado</div>
+    return (
+      <div className="db-root">
+        <SharedNav />
+        <main className="db-main"><p style={{color:'#fff'}}>Aluno não encontrado.</p></main>
+      </div>
+    )
   }
-  
-  const porcentagemFaltas = ((aluno.faltas / aluno.totalAulas) * 100).toFixed(1)
-  
+
+  const freq = parseFloat(((aluno.totalAulas - aluno.faltas) / aluno.totalAulas * 100).toFixed(1))
+  const freqColor = freq >= 75 ? '#4ade80' : '#f25f5c'
+
+  const infoStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }
+  const labelStyle = { fontSize: '13px', fontWeight: 600, color: 'rgba(255,255,255,0.4)' }
+  const valueStyle = { fontSize: '13px', fontWeight: 500, color: 'rgba(255,255,255,0.8)' }
+
   return (
-    <div className="dashboard">
-      <nav className="dashboard-nav">
-        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <div className="nav-brand">Perfil do Aluno</div>
-        <div className="nav-actions">
-          <button className="profile-btn" onClick={() => navigate('/perfil')}>
-            👤
-          </button>
-          <button className="logout-btn" onClick={() => navigate('/gerenciamento')}>
-            Voltar
-          </button>
-        </div>
-      </nav>
-      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <h3>Menu</h3>
-        </div>
-        <ul className="sidebar-menu">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/gerenciamento">Gerenciamento</Link></li>
-          <li><Link to="/criar-turmas">Criar Turmas</Link></li>
-          <li><Link to="/relatorios-admin">Relatórios</Link></li>
-        </ul>
-      </div>
-      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
-      
-      <div className="main-content">
-        <div className="top-bar">
-          <div className="breadcrumb">
-            <span className="dashboard-title">Perfil - {aluno.nome}</span>
+    <div className="db-root">
+      <SharedNav activeItem="ver-turmas" />
+
+      <main className="db-main">
+        <div className="db-page-title">Perfil do <span style={{color:'#4CC9F0'}}>Aluno</span></div>
+
+        <button
+          onClick={() => navigate(-1)}
+          style={{display:'inline-flex',alignItems:'center',gap:'6px',background:'rgba(76,201,240,0.1)',border:'1px solid rgba(76,201,240,0.25)',borderRadius:'8px',padding:'8px 16px',color:'#4CC9F0',fontSize:'13px',fontWeight:700,cursor:'pointer',marginBottom:'24px',fontFamily:'Plus Jakarta Sans,sans-serif',transition:'all 0.2s',position:'relative',zIndex:1}}
+          onMouseOver={e=>e.currentTarget.style.background='rgba(76,201,240,0.2)'}
+          onMouseOut={e=>e.currentTarget.style.background='rgba(76,201,240,0.1)'}
+        >← Voltar</button>
+
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1.4fr',gap:'16px',position:'relative',zIndex:1}}>
+
+          {/* Card esquerdo — avatar + info */}
+          <div className="db-card" style={{padding:'28px',display:'flex',flexDirection:'column',alignItems:'center',gap:'16px'}}>
+            <div style={{width:'80px',height:'80px',borderRadius:'50%',background:'rgba(76,201,240,0.12)',border:'2px solid rgba(76,201,240,0.35)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'30px',fontWeight:800,color:'#4CC9F0'}}>
+              {aluno.nome.charAt(0)}
+            </div>
+            <div style={{textAlign:'center'}}>
+              <div style={{fontSize:'20px',fontWeight:800,color:'#fff',letterSpacing:'-0.4px',marginBottom:'4px'}}>{aluno.nome}</div>
+              <div style={{fontSize:'13px',color:'rgba(255,255,255,0.4)'}}>{aluno.turma}</div>
+            </div>
+            <span style={{fontSize:'12px',fontWeight:700,padding:'4px 14px',borderRadius:'999px',background: aluno.ativo ? 'rgba(74,222,128,0.12)' : 'rgba(242,95,92,0.12)',border:`1px solid ${aluno.ativo ? 'rgba(74,222,128,0.3)' : 'rgba(242,95,92,0.3)'}`,color: aluno.ativo ? '#4ade80' : '#f25f5c'}}>
+              {aluno.ativo ? 'Ativo' : 'Inativo'}
+            </span>
+            <div style={{width:'100%',borderTop:'1px solid rgba(255,255,255,0.06)',paddingTop:'16px',display:'flex',flexDirection:'column',gap:'0'}}>
+              <div style={infoStyle}><span style={labelStyle}>R.A.</span><span style={valueStyle}>{aluno.ra}</span></div>
+              <div style={infoStyle}><span style={labelStyle}>Email</span><span style={valueStyle}>{aluno.email || 'Não informado'}</span></div>
+              <div style={{...infoStyle,borderBottom:'none'}}><span style={labelStyle}>Telefone</span><span style={valueStyle}>{aluno.telefone || 'Não informado'}</span></div>
+            </div>
+            <button
+              onClick={() => navigate(`/editar-aluno/${aluno.ra}`)}
+              style={{width:'100%',background:'rgba(76,201,240,0.1)',border:'1px solid rgba(76,201,240,0.25)',borderRadius:'8px',padding:'10px',color:'#4CC9F0',fontSize:'13px',fontWeight:700,cursor:'pointer',fontFamily:'Plus Jakarta Sans,sans-serif',transition:'all 0.2s',marginTop:'4px'}}
+              onMouseOver={e=>{e.currentTarget.style.background='#4CC9F0';e.currentTarget.style.color='#000'}}
+              onMouseOut={e=>{e.currentTarget.style.background='rgba(76,201,240,0.1)';e.currentTarget.style.color='#4CC9F0'}}
+            >Editar Aluno</button>
           </div>
-        </div>
-        
-        <div className="profile-container">
-          <div className="profile-card">
-            <div className="profile-header">
-              <div className="profile-avatar">👥</div>
-              <h2>{aluno.nome}</h2>
-              <span className={`profile-status ${aluno.ativo ? 'ativo' : 'inativo'}`}>
-                {aluno.ativo ? '✓ Ativo' : 'X Inativo'}
-              </span>
-            </div>
-            
-            <div className="profile-info">
-              <div className="info-row">
-                <span className="info-label">R.A.:</span>
-                <span className="info-value">{aluno.ra}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Turma:</span>
-                <span className="info-value">{aluno.turma}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Nascimento:</span>
-                <span className="info-value">{aluno.nascimento}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Email:</span>
-                <span className="info-value">{aluno.email || 'Não informado'}</span>
-              </div>
-              <div className="info-row">
-                <span className="info-label">Celular:</span>
-                <span className="info-value">{aluno.celular || 'Não informado'}</span>
-              </div>
-            </div>
-            
-            <div className="attendance-section">
-              <h3>Frequência</h3>
-              <div className="attendance-stats">
-                <div className="stat-item">
-                  <span className="stat-label">Total de Aulas:</span>
-                  <span className="stat-value">{aluno.totalAulas}</span>
+
+          {/* Card direito — frequência */}
+          <div style={{display:'flex',flexDirection:'column',gap:'14px'}}>
+
+            {/* Stats */}
+            <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'12px'}}>
+              {[
+                {label:'Total de Aulas', value: aluno.totalAulas, color:'#fff'},
+                {label:'Faltas',         value: aluno.faltas,     color:'#f25f5c'},
+                {label:'Presenças',      value: aluno.totalAulas - aluno.faltas, color:'#4ade80'},
+              ].map(s => (
+                <div key={s.label} className="db-card" style={{padding:'16px',textAlign:'center'}}>
+                  <div style={{fontSize:'28px',fontWeight:800,color:s.color,letterSpacing:'-1px',lineHeight:1}}>{s.value}</div>
+                  <div style={{fontSize:'11px',fontWeight:700,color:'rgba(255,255,255,0.3)',textTransform:'uppercase',letterSpacing:'0.06em',marginTop:'6px'}}>{s.label}</div>
                 </div>
-                <div className="stat-item">
-                  <span className="stat-label">Faltas:</span>
-                  <span className="stat-value">{aluno.faltas}</span>
-                </div>
-                <div className="stat-item">
-                  <span className="stat-label">Presenças:</span>
-                  <span className="stat-value">{aluno.totalAulas - aluno.faltas}</span>
-                </div>
-                <div className="stat-item highlight">
-                  <span className="stat-label">% de Faltas:</span>
-                  <span className="stat-value">{porcentagemFaltas}%</span>
-                </div>
-              </div>
-              
-              <div className="progress-bar">
-                <div className="progress-fill" style={{width: `${100 - porcentagemFaltas}%`}}></div>
-              </div>
-              <p className="progress-text">Frequência: {(100 - porcentagemFaltas).toFixed(1)}%</p>
+              ))}
             </div>
+
+            {/* Frequência */}
+            <div className="db-card" style={{padding:'24px'}}>
+              <div className="db-card-section-title" style={{marginBottom:'20px'}}>
+                <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" style={{width:14,height:14}}><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                Frequência
+              </div>
+              <div style={{display:'flex',alignItems:'flex-end',justifyContent:'space-between',marginBottom:'10px'}}>
+                <span style={{fontSize:'40px',fontWeight:800,color:freqColor,letterSpacing:'-1px',lineHeight:1}}>{freq}%</span>
+                <span style={{fontSize:'12px',color:'rgba(255,255,255,0.3)',marginBottom:'6px'}}>{freq >= 75 ? 'Regular' : 'Crítico — abaixo de 75%'}</span>
+              </div>
+              <div style={{height:'8px',background:'rgba(255,255,255,0.07)',borderRadius:'4px',overflow:'hidden'}}>
+                <div style={{height:'8px',width:`${freq}%`,background:freqColor,borderRadius:'4px',transition:'width 0.4s'}} />
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',marginTop:'8px',fontSize:'11px',color:'rgba(255,255,255,0.25)'}}>
+                <span>0%</span><span>75%</span><span>100%</span>
+              </div>
+            </div>
+
+            {/* Alerta */}
+            {freq < 75 && (
+              <div style={{background:'rgba(242,95,92,0.08)',border:'1px solid rgba(242,95,92,0.25)',borderRadius:'12px',padding:'16px 20px',display:'flex',alignItems:'center',gap:'12px'}}>
+                <svg viewBox="0 0 24 24" strokeWidth="2" stroke="#f25f5c" fill="none" style={{width:20,height:20,flexShrink:0}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span style={{fontSize:'13px',color:'#f25f5c',fontWeight:600}}>Atenção: frequência abaixo do limite mínimo de 75%.</span>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-      
-      <footer className="rodape">
-        <div className="rodape-div">
-          <div className="rodape-div-1">
-            <div className="rodape-div-1-coluna">
-              <span><b>LOGO</b></span>
-              <p>Belval, Barueri - SP, 06420-150</p>
-            </div>
-          </div>
-          <div className="rodape-div-2">
-            <div className="rodape-div-2-coluna">
-              <span><b>Contatos</b></span>
-              <p>Sem Email Definido</p>
-              <p>+55 (11) 99999-9999</p>
-            </div>
-          </div>
-          <div className="rodape-div-3">
-            <div className="rodape-div-3-coluna">
-              <span><b>Links</b></span>
-              <p><a href="#servicos">Home</a></p>
-              <p><a href="#empresa">Sobre nós</a></p>
-              <p><a href="#contato">Contato</a></p>
-            </div>
-          </div>
-          <div className="rodape-div-4">
-            <div className="rodape-div-4-coluna">
-              <span><b>Outros</b></span>
-              <p>Políticas de Privacidade</p>
-            </div>
-          </div>
-        </div>
-        <p className="rodape-direitos">Copyright © 2023 – Todos os Direitos Reservados.</p>
-      </footer>
+      </main>
     </div>
   )
 }

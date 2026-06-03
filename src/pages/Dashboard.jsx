@@ -1,158 +1,94 @@
 import React, { useState, useEffect } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import UsuarioService from '../Services/UsuarioService'
+import { useNavigate } from 'react-router-dom'
+import SharedNav from '../common/SharedNav'
 
 function Dashboard() {
   const navigate = useNavigate()
-  const [menuOpen, setMenuOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [showLogoutModal, setShowLogoutModal] = useState(false)
-  
+
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
-    
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
   }, [])
-  
+
+  const timeStr = currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })
+  const dateStr = currentTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+
   return (
-    <div className="dashboard">
-      <nav className="dashboard-nav">
-        <button className={`hamburger ${menuOpen ? 'active' : ''}`} onClick={() => setMenuOpen(!menuOpen)}>
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-        <div className="nav-brand">Absence Manager</div>
-        <div className="nav-actions">
-          <button className="profile-btn" onClick={() => navigate('/perfil')}>
-            👤
-          </button>
-          <button className="logout-btn" onClick={() => setShowLogoutModal(true)}>
-            Sair
-          </button>
-        </div>
-      </nav>
-      <div className={`sidebar ${menuOpen ? 'open' : ''}`}>
-        <div className="sidebar-header">
-          <h3>Menu</h3>
-        </div>
-        <ul className="sidebar-menu">
-          <li><Link to="/dashboard">Dashboard</Link></li>
-          <li><Link to="/cadastrar-usuario">Cadastrar Usuário</Link></li>
-          <li><Link to="/gerenciamento">Gerenciamento</Link></li>
-          <li><Link to="/criar-turmas">Criar Turmas</Link></li>
-          <li><Link to="/relatorios-admin">Relatórios</Link></li>
-        </ul>
-      </div>
-      {menuOpen && <div className="overlay" onClick={() => setMenuOpen(false)}></div>}
-      
-      {showLogoutModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Confirmar Saída</h3>
-            <p>Tem certeza que deseja sair da sua conta?</p>
-            <div className="modal-buttons">
-              <button className="cancel-btn" onClick={() => setShowLogoutModal(false)}>Cancelar</button>
-              <button className="confirm-btn" onClick={() => navigate('/')}>Sair</button>
+    <div className="db-root">
+      <SharedNav activeItem="dashboard" />
+
+      {/* MAIN */}
+      <main className="db-main">
+        <div className="db-page-title">Dashboard</div>
+
+        <div className="db-grid-top">
+          {/* Welcome */}
+          <div className="db-card db-card-welcome">
+            <div className="db-welcome-top">
+              <span className="db-welcome-emoji">👋</span>
+              <span className="db-welcome-label">Bem-vindo de volta</span>
             </div>
-          </div>
-        </div>
-      )}
-      
-      <div className="main-content">
-        <div className="top-bar">
-          <div className="breadcrumb">
-            <span className="dashboard-title">Dashboard</span>
-          </div>
-        </div>
-        
-        <div className="stats-row">
-          <div className="welcome-card">
-            <div className="welcome-icon">👋</div>
-            <div className="welcome-title">Bem-Vindo de volta, Admin!</div>
-            <div className="account-name">Administrador do Sistema</div>
-          </div>
-          <div className="datetime-card">
-            <div className="clock-header">
-              <div className="clock-icon">🕐</div>
-              <h3>Horário Atual</h3>
-            </div>
-            <div className="time-display">{currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })}</div>
-            <div className="date-display">{currentTime.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-          </div>
-        </div>
-        
-        <div className="charts-row">
-          <div className="activities-section">
-            <h3>Atualizações</h3>
-            <div className="no-updates">
-              <p>Sem Atualizações</p>
-            </div>
-          </div>
-          
-          <div className="weather-card">
-            <h3>Clima Mundial</h3>
-            <div className="main-weather">
-              <div className="city-name-main">Barueri</div>
-              <div className="city-temp-main">28°C</div>
-              <div className="city-desc-main">☀️ Ensolarado</div>
-              <div className="weather-details">
-                <span>💧 Umidade: 65%</span>
-                <span>💨 Vento: 12 km/h</span>
+            <div className="db-welcome-bottom">
+              <div className="db-welcome-name">Admin!</div>
+              <div className="db-welcome-role">
+                <span className="db-role-dot"></span>
+                Administrador do Sistema
               </div>
             </div>
-            <div className="other-cities">
-              <div className="city-weather-small">
-                <span className="city-name-small">São Paulo</span>
-                <span className="city-temp-small">25°C</span>
-              </div>
-              <div className="city-weather-small">
-                <span className="city-name-small">Rio de Janeiro</span>
-                <span className="city-temp-small">32°C</span>
-              </div>
-              <div className="city-weather-small">
-                <span className="city-name-small">Brasília</span>
-                <span className="city-temp-small">26°C</span>
-              </div>
+            <div className="db-welcome-accent"></div>
+          </div>
+
+          {/* Clock */}
+          <div className="db-card db-card-clock">
+            <div className="db-clock-label">
+              <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              Horário Atual
+            </div>
+            <div>
+              <div className="db-clock-time">{timeStr}</div>
+              <div className="db-clock-date">{dateStr}</div>
             </div>
           </div>
         </div>
-      </div>
-      
-      <footer className="rodape">
-        <div className="rodape-div">
-          <div className="rodape-div-1">
-            <div className="rodape-div-1-coluna">
-              <span><b>LOGO</b></span>
-              <p>Belval, Barueri - SP, 06420-150</p>
+
+        <div className="db-grid-bottom">
+          {/* Updates */}
+          <div className="db-card db-card-updates">
+            <div className="db-card-section-title">
+              <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              Atualizações
+            </div>
+            <div className="db-updates-empty">
+              <svg viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <span>Sem Atualizações</span>
             </div>
           </div>
-          <div className="rodape-div-2">
-            <div className="rodape-div-2-coluna">
-              <span><b>Contatos</b></span>
-              <p>Sem Email Definido</p>
-              <p>+55 (11) 99999-9999</p>
+
+          {/* Weather */}
+          <div className="db-card db-card-weather">
+            <div className="db-card-section-title">
+              <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>
+              Clima Mundial
             </div>
-          </div>
-          <div className="rodape-div-3">
-            <div className="rodape-div-3-coluna">
-              <span><b>Links</b></span>
-              <p><a href="#servicos">Home</a></p>
-              <p><a href="#empresa">Sobre nós</a></p>
-              <p><a href="#contato">Contato</a></p>
+            <div className="db-weather-main">
+              <div className="db-weather-city">Barueri</div>
+              <div className="db-weather-temp">28°C</div>
+              <div className="db-weather-desc"><span>🌤</span><span>Ensolarado</span></div>
+              <div className="db-weather-meta">
+                <div className="db-weather-meta-item"><span>💧</span><span>Umidade: 65%</span></div>
+                <div className="db-weather-meta-item"><span>💨</span><span>Vento: 12 km/h</span></div>
+              </div>
             </div>
-          </div>
-          <div className="rodape-div-4">
-            <div className="rodape-div-4-coluna">
-              <span><b>Outros</b></span>
-              <p>Políticas de Privacidade</p>
+            <div className="db-weather-cities">
+              <div className="db-city-chip">São Paulo<br/><strong>25°C</strong></div>
+              <div className="db-city-chip">Rio de Janeiro<br/><strong>32°C</strong></div>
+              <div className="db-city-chip">Brasília<br/><strong>26°C</strong></div>
             </div>
           </div>
         </div>
-        <p className="rodape-direitos">Copyright © 2023 – Todos os Direitos Reservados.</p>
-      </footer>
+      </main>
+
     </div>
   )
 }

@@ -10,7 +10,6 @@ import CriarTurmas from './pages/CriarTurmas'
 
 import AlunoPerfilIntegrado from './pages/Aluno/AlunoPerfilIntegrado'
 
-import EditarAluno from './pages/EditarAluno'
 import RelatoriosAdmin from './pages/RelatoriosAdmin'
 import VerTurmas from './pages/VerTurmas'
 import DetalhesTurma from './pages/DetalhesTurma'
@@ -51,7 +50,10 @@ function AnimatedRoutes() {
         <Route path="/cadastrar-usuario" element={<RequireAuth><CadastrarUsuario /></RequireAuth>} />
         <Route path="/criar-turmas" element={<RequireAuth><CriarTurmas /></RequireAuth>} />
         <Route path="/aluno/:ra" element={<RequireAuth><AlunoPerfilIntegrado /></RequireAuth>} />
-        <Route path="/editar-aluno/:ra" element={<RequireAuth><EditarAluno /></RequireAuth>} />
+        <Route path="/alunos" element={<RequireAuth><AlunosListar /></RequireAuth>} />
+        <Route path="/alunos/novo" element={<RequireAuth><AlunoCadastrar /></RequireAuth>} />
+        <Route path="/alunos/editar/:rm" element={<RequireAuth><AlunoEditar /></RequireAuth>} />
+        <Route path="/editar-aluno/:rm" element={<RequireAuth><AlunoEditar /></RequireAuth>} />
         <Route path="/relatorios-admin" element={<RequireAuth><RelatoriosAdmin /></RequireAuth>} />
         <Route path="/ver-turmas" element={<RequireAuth><VerTurmas /></RequireAuth>} />
         <Route path="/turma/:turmaId" element={<RequireAuth><DetalhesTurma /></RequireAuth>} />

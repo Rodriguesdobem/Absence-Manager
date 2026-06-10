@@ -56,12 +56,32 @@ function AlunosListar() {
 
   return (
     <div className="db-root">
-      <SharedNav activeItem="ver-turmas" />
+      <SharedNav activeItem="alunos" />
 
       <main className="db-main">
         <div className="db-page-title">
           Alunos — <span style={{ color: "#4CC9F0" }}>Lista</span>
         </div>
+
+        <button
+          onClick={() => navigate("/alunos/novo")}
+          style={{
+            background: "#4CC9F0",
+            border: "none",
+            borderRadius: "8px",
+            padding: "10px 18px",
+            color: "#000",
+            fontSize: "13px",
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: "Plus Jakarta Sans,sans-serif",
+            marginBottom: "18px",
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
+          Novo Aluno
+        </button>
 
         {loading ? (
           <div className="db-card" style={{ padding: "24px 28px" }}>
@@ -214,4 +234,3 @@ function AlunosListar() {
 }
 
 export default AlunosListar;
-

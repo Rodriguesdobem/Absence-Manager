@@ -30,6 +30,7 @@ function AlunoEditar() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [alunoAtual, setAlunoAtual] = useState(null);
 
   const [form, setForm] = useState({
     nome: "",
@@ -89,6 +90,7 @@ function AlunoEditar() {
     try {
       const response = await AlunoServices.buscarAlunoPorRm(rm);
       const aluno = response.data || {};
+      setAlunoAtual(aluno);
 
       setForm({
         nome: aluno.nome ?? "",
@@ -121,14 +123,19 @@ function AlunoEditar() {
 
     try {
       setLoading(true);
-      // Remover campos vazios para evitar que o backend grave NULL em colunas NOT NULL
-      const payload = { ...form };
-      if (!payload.data_nascimento) payload.data_nascimento = undefined;
-      if (payload.cpf === "") payload.cpf = undefined;
-      if (payload.nome === "") payload.nome = undefined;
+      const payload = {
+        ...alunoAtual,
+        nome: form.nome,
+        dataNascimento: form.data_nascimento,
+        sexo: form.sexo,
+        cpf: form.cpf,
+        telefone: form.telefone,
+        statusAluno: form.status_aluno,
+        usuario: alunoAtual?.usuario,
+      };
 
-      await AlunoServices.inativarAluno(rm);
-      navigate("/alunos");
+      await AlunoServices.atualizarAluno(rm, payload);
+      navigate(`/aluno/${rm}`);
     } catch (err) {
       setError(getAxiosErrorMessage(err));
     } finally {
@@ -139,7 +146,7 @@ function AlunoEditar() {
   if (loading) {
     return (
       <div className="db-root">
-        <SharedNav activeItem="ver-turmas" />
+        <SharedNav activeItem="alunos" />
         <main className="db-main">
           <div className="db-page-title">
             Editar <span style={{ color: "#4CC9F0" }}>Aluno</span>
@@ -157,7 +164,7 @@ function AlunoEditar() {
   if (error) {
     return (
       <div className="db-root">
-        <SharedNav activeItem="ver-turmas" />
+        <SharedNav activeItem="alunos" />
         <main className="db-main">
           <div className="db-page-title">
             Editar <span style={{ color: "#4CC9F0" }}>Aluno</span>
@@ -192,7 +199,7 @@ function AlunoEditar() {
 
   return (
     <div className="db-root">
-      <SharedNav activeItem="ver-turmas" />
+      <SharedNav activeItem="alunos" />
 
       <main className="db-main">
         <div className="db-page-title">
@@ -331,4 +338,3 @@ function AlunoEditar() {
 }
 
 export default AlunoEditar;
-

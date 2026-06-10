@@ -74,7 +74,7 @@ export default function AlunoPerfilIntegrado() {
 
   return (
     <div className="db-root">
-      <SharedNav activeItem="ver-turmas" />
+      <SharedNav activeItem="alunos" />
 
       <main className="db-main">
         <div className="db-page-title">Perfil do <span style={{ color: "#4CC9F0" }}>Aluno</span></div>
@@ -301,4 +301,3 @@ export default function AlunoPerfilIntegrado() {
     </div>
   );
 }
-

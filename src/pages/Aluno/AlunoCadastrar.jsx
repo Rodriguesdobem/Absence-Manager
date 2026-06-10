@@ -31,7 +31,7 @@ function AlunoCadastrar() {
     telefone: "",
     usuario_id: "",
     turma_id: "",
-    status_aluno: "",
+    status_aluno: "ATIVO",
   });
 
   useEffect(() => {
@@ -161,7 +161,7 @@ function AlunoCadastrar() {
 
   return (
     <div className="db-root">
-      <SharedNav activeItem="ver-turmas" />
+      <SharedNav activeItem="alunos" />
 
       <main className="db-main">
         <div className="db-page-title">
@@ -289,4 +289,3 @@ function AlunoCadastrar() {
 }
 
 export default AlunoCadastrar;
-

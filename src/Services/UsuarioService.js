@@ -6,7 +6,7 @@ const findAll = () => {
 };
 
 const findById = (id) => {
-    return http.mainInstance.get(API_URL + `buscar/${id}`);
+    return http.mainInstance.get(API_URL + `${id}`);
 };
 
 const signup = (nome, email, password) => {
@@ -99,20 +99,19 @@ const update = (id, data) => {
 
 
 const inativar = (id) => {
-    return http.multipartInstance.put(API_URL + `inativar/${id}`);
+    return http.mainInstance.put(API_URL + `${id}/inativar`);
 };
 
 const reativar = (id) => {
-    return http.multipartInstance.put(API_URL + `reativar/${id}`);
+    return http.mainInstance.put(API_URL + `${id}/ativar`);
 };
 
 
 
 const alterarSenha = (id, data) => {
-    const formData = new FormData();
-    formData.append('senha', data.senha);
- 
-    return http.multipartInstance.put(API_URL + `alterarSenha/${id}`, formData);
+    return http.mainInstance.put(API_URL + `${id}/alterar-senha`, null, {
+        params: { newPassword: data.senha },
+    });
 };
 
 const findByNome = nome => {

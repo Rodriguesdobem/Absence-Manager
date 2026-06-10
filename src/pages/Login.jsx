@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import UsuarioService from "../Services/UsuarioService";
 
 const styles = `
+
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -218,8 +220,15 @@ export default function Login() {
   const navigate = useNavigate()
   const [form, setForm]     = useState({ identifier: "", password: "" });
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState(null);
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (UsuarioService.getCurrentUser()) {
+      navigate('/dashboard');
+    }
+  }, [navigate]);
 
   const validate = () => {
     const e = {};
@@ -239,11 +248,28 @@ export default function Login() {
 
   const handleSubmit = async () => {
     const e = validate();
-    if (Object.keys(e).length) { setErrors(e); return; }
+    if (Object.keys(e).length) {
+      setErrors(e);
+      return;
+    }
+
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1400));
-    setLoading(false);
-    navigate('/dashboard');
+    setSubmitError(null);
+
+    try {
+      const user = await UsuarioService.signin(form.identifier, form.password);
+      if (!user) {
+        setSubmitError('Login inválido. Verifique o e-mail/usuário e senha.');
+      } else {
+        navigate('/dashboard');
+      }
+    } catch (err) {
+      console.error('Falha no login:', err);
+      const message = err?.response?.data?.error || err?.message;
+      setSubmitError(message || 'Não foi possível conectar ao servidor. Verifique o backend e tente novamente.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -277,12 +303,12 @@ export default function Login() {
 
             <div className="lp-form-group">
               <div className="lp-field">
-                <label>E-mail ou usuário</label>
+                <label>Usuário / e-mail cadastrado</label>
                 <div className="lp-input-wrap">
                   <input
                     className={`lp-input${errors.identifier ? " lp-error" : ""}`}
                     type="text"
-                    placeholder="voce@exemplo.com"
+                    placeholder="seu.usuario@exemplo.com"
                     value={form.identifier}
                     onChange={handleChange("identifier")}
                     onKeyDown={e => e.key === "Enter" && handleSubmit()}
@@ -327,6 +353,9 @@ export default function Login() {
             <button className="lp-btn-submit" onClick={handleSubmit} disabled={loading}>
               {loading ? <><div className="lp-spinner" /> Verificando...</> : <>Entrar </>}
             </button>
+            {submitError && (
+              <div className="lp-error-msg" style={{ marginTop: '18px', justifyContent: 'center' }}><IconAlert /> {submitError}</div>
+            )}
 
             <div className="lp-card-bottom-bar" />
           </div>

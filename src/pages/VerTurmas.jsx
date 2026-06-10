@@ -1,38 +1,73 @@
-import React, { useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SharedNav from '../common/SharedNav'
-import { TURMAS_DATA } from '../common/turmasData'
+import TurmaServices from '../Services/TurmaServices'
 
 const PERIODO_COLOR = {
-  Matutino:   { bg: 'rgba(76,201,240,0.1)',  border: 'rgba(76,201,240,0.25)',  text: '#4CC9F0' },
+  Matutino: { bg: 'rgba(76,201,240,0.1)', border: 'rgba(76,201,240,0.25)', text: '#4CC9F0' },
   Vespertino: { bg: 'rgba(160,168,255,0.1)', border: 'rgba(160,168,255,0.25)', text: '#a0a8ff' },
-  Noturno:    { bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.12)', text: 'rgba(255,255,255,0.5)' },
+  Noturno: { bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.12)', text: 'rgba(255,255,255,0.5)' },
+}
+
+function getErrorMessage(error) {
+  return error?.response?.data?.message || error?.response?.data || error?.message || 'Erro ao carregar turmas.'
+}
+
+function professorNome(professor) {
+  return professor?.nome || 'Sem professor'
 }
 
 function VerTurmas() {
   const navigate = useNavigate()
-  const turmas = Object.values(TURMAS_DATA)
+  const [turmas, setTurmas] = useState([])
   const [filtro, setFiltro] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const filtradas = turmas.filter(t =>
-    t.nome.toLowerCase().includes(filtro.toLowerCase()) ||
-    t.professor.toLowerCase().includes(filtro.toLowerCase()) ||
-    t.curso.toLowerCase().includes(filtro.toLowerCase())
-  )
+  useEffect(() => {
+    const carregar = async () => {
+      setLoading(true)
+      setError('')
+      try {
+        const response = await TurmaServices.listarTurmas()
+        setTurmas(response.data || [])
+      } catch (err) {
+        setError(getErrorMessage(err))
+        setTurmas([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    carregar()
+  }, [])
+
+  const filtradas = useMemo(() => {
+    const termo = filtro.toLowerCase()
+    return turmas.filter(turma => {
+      const professor = professorNome(turma.professor).toLowerCase()
+      return (
+        String(turma.nome || '').toLowerCase().includes(termo) ||
+        String(turma.instrumento || '').toLowerCase().includes(termo) ||
+        professor.includes(termo)
+      )
+    })
+  }, [filtro, turmas])
+
+  const totalVagas = turmas.reduce((acc, turma) => acc + Number(turma.vagas || 0), 0)
 
   return (
     <div className="db-root">
       <SharedNav activeItem="ver-turmas" />
 
       <main className="db-main">
-        {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px', position: 'relative', zIndex: 1, flexWrap: 'wrap', gap: '12px' }}>
           <div className="db-page-title" style={{ marginBottom: 0 }}>
             Ver <span style={{ color: '#4CC9F0' }}>Turmas</span>
           </div>
           <input
             type="text"
-            placeholder="Buscar turma, professor ou curso..."
+            placeholder="Buscar turma, professor ou instrumento..."
             value={filtro}
             onChange={e => setFiltro(e.target.value)}
             style={{ background: '#111118', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '10px 16px', fontSize: '13px', color: '#fff', fontFamily: 'Plus Jakarta Sans,sans-serif', outline: 'none', width: '280px', transition: 'border 0.2s' }}
@@ -41,12 +76,11 @@ function VerTurmas() {
           />
         </div>
 
-        {/* Stats rápidas */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(140px,1fr))', gap: '12px', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
           {[
             { label: 'Total de Turmas', value: turmas.length },
-            { label: 'Total de Alunos', value: turmas.reduce((acc, t) => acc + t.alunos.length, 0) },
-            { label: 'Vagas Disponíveis', value: turmas.reduce((acc, t) => acc + (t.capacidade - t.alunos.length), 0) },
+            { label: 'Turmas Ativas', value: turmas.filter(t => t.statusTurma !== 'INATIVA').length },
+            { label: 'Total de Vagas', value: totalVagas },
           ].map(s => (
             <div key={s.label} className="db-card" style={{ padding: '16px 20px' }}>
               <div style={{ fontSize: '11px', fontWeight: 700, color: '#4CC9F0', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{s.label}</div>
@@ -55,65 +89,50 @@ function VerTurmas() {
           ))}
         </div>
 
-        {/* Grid de turmas */}
-        {filtradas.length > 0 ? (
+        {loading ? (
+          <div className="db-card" style={{ padding: '24px 28px', position: 'relative', zIndex: 1 }}>
+            <div className="db-card-section-title" style={{ marginBottom: 0 }}>Carregando turmas...</div>
+          </div>
+        ) : error ? (
+          <div className="db-card" style={{ padding: '24px 28px', position: 'relative', zIndex: 1 }}>
+            <div className="db-card-section-title">Erro</div>
+            <p style={{ color: '#f25f5c', fontSize: 13, marginTop: 8, lineHeight: 1.5 }}>{String(error)}</p>
+          </div>
+        ) : filtradas.length > 0 ? (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(280px,1fr))', gap: '14px', position: 'relative', zIndex: 1 }}>
             {filtradas.map(turma => {
-              const ocupacao = Math.round((turma.alunos.length / turma.capacidade) * 100)
               const pc = PERIODO_COLOR[turma.periodo] || PERIODO_COLOR.Noturno
               return (
                 <div key={turma.id} className="db-card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-
-                  {/* Topo */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <span style={{ fontSize: '11px', fontWeight: 700, color: pc.text, background: pc.bg, border: `1px solid ${pc.border}`, borderRadius: '6px', padding: '3px 10px', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                      {turma.periodo}
+                      {turma.periodo || 'Periodo'}
                     </span>
-                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>{turma.ano}</span>
+                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>{turma.ano || '-'}</span>
                   </div>
 
-                  {/* Nome e curso */}
                   <div>
                     <div style={{ fontSize: '18px', fontWeight: 800, color: '#fff', letterSpacing: '-0.3px', marginBottom: '4px' }}>{turma.nome}</div>
-                    <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>{turma.curso} · {turma.professor}</div>
+                    <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)' }}>{turma.instrumento || 'Instrumento'} - {professorNome(turma.professor)}</div>
                   </div>
 
-                  {/* Barra de ocupação */}
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'rgba(255,255,255,0.35)', marginBottom: '6px' }}>
-                      <span>Ocupação</span>
-                      <span>{turma.alunos.length} / {turma.capacidade} alunos</span>
+                      <span>Vagas</span>
+                      <span>{turma.vagas || 0}</span>
                     </div>
                     <div style={{ height: '4px', background: 'rgba(255,255,255,0.07)', borderRadius: '2px' }}>
-                      <div style={{ height: '4px', width: `${ocupacao}%`, background: ocupacao > 80 ? '#f25f5c' : '#4CC9F0', borderRadius: '2px', transition: 'width 0.3s' }} />
+                      <div style={{ height: '4px', width: '100%', background: '#4CC9F0', borderRadius: '2px', transition: 'width 0.3s' }} />
                     </div>
                   </div>
 
-                  {/* Alunos preview */}
-                  {turma.alunos.length > 0 && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      {turma.alunos.slice(0, 2).map(a => (
-                        <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#111118', borderRadius: '8px', padding: '7px 10px' }}>
-                          <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: 'rgba(76,201,240,0.12)', border: '1px solid rgba(76,201,240,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: '#4CC9F0', flexShrink: 0 }}>
-                            {a.nome.charAt(0)}
-                          </div>
-                          <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.6)', fontWeight: 500 }}>{a.nome}</span>
-                        </div>
-                      ))}
-                      {turma.alunos.length > 2 && (
-                        <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', paddingLeft: '4px' }}>+{turma.alunos.length - 2} aluno(s)</div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Botão */}
                   <button
                     onClick={() => navigate(`/turma/${turma.id}`)}
                     style={{ marginTop: 'auto', width: '100%', background: 'rgba(76,201,240,0.1)', border: '1px solid rgba(76,201,240,0.25)', borderRadius: '8px', padding: '10px', color: '#4CC9F0', fontSize: '13px', fontWeight: 700, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans,sans-serif', transition: 'all 0.2s' }}
                     onMouseOver={e => { e.currentTarget.style.background = '#4CC9F0'; e.currentTarget.style.color = '#000' }}
                     onMouseOut={e => { e.currentTarget.style.background = 'rgba(76,201,240,0.1)'; e.currentTarget.style.color = '#4CC9F0' }}
                   >
-                    Ver Detalhes →
+                    Ver Detalhes
                   </button>
                 </div>
               )

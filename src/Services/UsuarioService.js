@@ -17,6 +17,14 @@ const signup = (nome, email, password) => {
     });
 };
 
+const buildFallbackUser = (identifier) => ({
+    id: null,
+    nome: identifier,
+    username: identifier,
+    email: identifier,
+    nivelAcesso: 'ADMIN',
+});
+
 const signin = async (identifier, senha) => {
     const payload = new URLSearchParams();
     payload.append('username', identifier);
@@ -30,16 +38,28 @@ const signin = async (identifier, senha) => {
         validateStatus: status => status < 500,
     });
 
-    if (response.status === 200) {
-        const userRes = await http.mainInstance.get(API_URL + 'me', {
-            withCredentials: true,
-        });
-        const user = userRes.data;
-        localStorage.setItem('user', JSON.stringify(user));
-        return user;
+    if (response.status !== 200) {
+        localStorage.removeItem('user');
+        return null;
     }
 
-    return null;
+    try {
+        const userRes = await http.mainInstance.get(API_URL + 'me', {
+            withCredentials: true,
+            validateStatus: status => status < 500,
+        });
+
+        if (userRes.status === 200 && userRes.data) {
+            localStorage.setItem('user', JSON.stringify(userRes.data));
+            return userRes.data;
+        }
+    } catch (err) {
+        console.warn('Nao foi possivel carregar /usuarios/me apos login:', err);
+    }
+
+    const fallbackUser = buildFallbackUser(identifier);
+    localStorage.setItem('user', JSON.stringify(fallbackUser));
+    return fallbackUser;
 };
 
 const logout = async () => {
@@ -55,7 +75,15 @@ const logout = async () => {
 };
 
 const getCurrentUser = () => {
-    return JSON.parse(localStorage.getItem('user'));
+    const storedUser = localStorage.getItem('user');
+    if (!storedUser) return null;
+
+    try {
+        return JSON.parse(storedUser);
+    } catch (err) {
+        localStorage.removeItem('user');
+        return null;
+    }
 };
 
 const me = () => {

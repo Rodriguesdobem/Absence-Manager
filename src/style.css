@@ -1918,8 +1918,6 @@ html {
 }
 
 /* ===== WELCOME HOME (wh-) ===== */
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
 .wh-site{font-family:'Plus Jakarta Sans',sans-serif;background:#000;color:#fff;width:100%;overflow-x:hidden;}
 
 .wh-nav{background:#3B429F;width:100%;padding:0 40px;height:64px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #4CC9F0;position:sticky;top:0;z-index:100;}

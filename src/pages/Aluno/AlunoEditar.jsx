@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import AlunoServices from "../../services/AlunoServices";
+import AlunoServices from "../../Services/AlunoServices";
 import SharedNav from "../../common/SharedNav";
 
 function normalizeDateInput(value) {

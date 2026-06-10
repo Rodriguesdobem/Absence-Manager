@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import UsuarioService from './Services/UsuarioService'
@@ -14,8 +14,6 @@ import RelatoriosAdmin from './pages/RelatoriosAdmin'
 import VerTurmas from './pages/VerTurmas'
 import DetalhesTurma from './pages/DetalhesTurma'
 import VerAlunosTurma from './pages/VerAlunosTurma'
-import AlunosListar from './pages/Aluno/AlunosListar'
-import AlunoCadastrar from './pages/Aluno/AlunoCadastrar'
 import AlunoEditar from './pages/Aluno/AlunoEditar'
 import './style.css'
 
@@ -50,9 +48,6 @@ function AnimatedRoutes() {
         <Route path="/cadastrar-usuario" element={<RequireAuth><CadastrarUsuario /></RequireAuth>} />
         <Route path="/criar-turmas" element={<RequireAuth><CriarTurmas /></RequireAuth>} />
         <Route path="/aluno/:ra" element={<RequireAuth><AlunoPerfilIntegrado /></RequireAuth>} />
-        <Route path="/alunos" element={<RequireAuth><AlunosListar /></RequireAuth>} />
-        <Route path="/alunos/novo" element={<RequireAuth><AlunoCadastrar /></RequireAuth>} />
-        <Route path="/alunos/editar/:rm" element={<RequireAuth><AlunoEditar /></RequireAuth>} />
         <Route path="/editar-aluno/:rm" element={<RequireAuth><AlunoEditar /></RequireAuth>} />
         <Route path="/relatorios-admin" element={<RequireAuth><RelatoriosAdmin /></RequireAuth>} />
         <Route path="/ver-turmas" element={<RequireAuth><VerTurmas /></RequireAuth>} />
@@ -61,6 +56,7 @@ function AnimatedRoutes() {
 
         {/* Rotas do módulo Admin */}
         <Route path="/relatorios" element={<RequireAuth><RelatoriosAdmin /></RequireAuth>} />
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
 
 
       </Routes>

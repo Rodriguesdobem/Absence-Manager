@@ -74,13 +74,13 @@ export default function AlunoPerfilIntegrado() {
 
   return (
     <div className="db-root">
-      <SharedNav activeItem="alunos" />
+      <SharedNav activeItem="ver-turmas" />
 
       <main className="db-main">
         <div className="db-page-title">Perfil do <span style={{ color: "#4CC9F0" }}>Aluno</span></div>
 
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate('/ver-turmas')}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -194,7 +194,7 @@ export default function AlunoPerfilIntegrado() {
               </div>
 
               <button
-                onClick={() => navigate(`/alunos/editar/${aluno?.rm ?? parsedRa}`)}
+                onClick={() => navigate(`/editar-aluno/${aluno?.rm ?? parsedRa}`)}
                 style={{
                   width: "100%",
                   background: "rgba(76,201,240,0.1)",

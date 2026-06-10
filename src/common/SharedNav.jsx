@@ -10,7 +10,6 @@ function SharedNav({ title, activeItem }) {
   const navItems = [
     { to: '/dashboard', label: 'Dashboard', key: 'dashboard', icon: <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
     { to: '/cadastrar-usuario', label: 'Cadastrar Usuário', key: 'cadastrar', icon: <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg> },
-    { to: '/alunos', label: 'Ver Alunos', key: 'alunos', icon: <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> },
     { to: '/ver-turmas', label: 'Ver Turmas', key: 'ver-turmas', icon: <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> },
     { to: '/criar-turmas', label: 'Criar Turmas', key: 'turmas', icon: <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> },
 
@@ -53,7 +52,7 @@ function SharedNav({ title, activeItem }) {
             </Link>
           ))}
           <div className="hb-sidebar-section-label">Gestão</div>
-          {navItems.slice(1, 5).map(item => (
+          {navItems.slice(1, 4).map(item => (
             <Link key={item.key} className={`hb-nav-item${activeItem === item.key ? ' hb-active' : ''}`} to={item.to} onClick={() => setMenuOpen(false)}>
               <span className="hb-nav-icon">{item.icon}</span>
               {item.label}
@@ -61,7 +60,7 @@ function SharedNav({ title, activeItem }) {
           ))}
           <div className="hb-sidebar-divider" />
           <div className="hb-sidebar-section-label">Relatórios</div>
-          {navItems.slice(5, 6).map(item => (
+          {navItems.slice(4, 5).map(item => (
             <Link key={item.key} className={`hb-nav-item${activeItem === item.key ? ' hb-active' : ''}`} to={item.to} onClick={() => setMenuOpen(false)}>
               <span className="hb-nav-icon">{item.icon}</span>
               {item.label}

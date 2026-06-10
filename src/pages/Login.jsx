@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import UsuarioService from "../Services/UsuarioService";
 
@@ -287,9 +287,11 @@ export default function Login() {
           <div className="lp-card">
             <div className="lp-card-glow" />
 
-            <button className="lp-back-btn" type="button" onClick={() => navigate(-1)}>
+            <button className="lp-back-btn" type="button" onClick={() => navigate('/')}
+            >
               ← Voltar
             </button>
+
 
             <div>
               <div className="lp-logo-row">

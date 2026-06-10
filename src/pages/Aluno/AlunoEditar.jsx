@@ -146,7 +146,7 @@ function AlunoEditar() {
   if (loading) {
     return (
       <div className="db-root">
-        <SharedNav activeItem="alunos" />
+        <SharedNav activeItem="ver-turmas" />
         <main className="db-main">
           <div className="db-page-title">
             Editar <span style={{ color: "#4CC9F0" }}>Aluno</span>
@@ -164,7 +164,7 @@ function AlunoEditar() {
   if (error) {
     return (
       <div className="db-root">
-        <SharedNav activeItem="alunos" />
+        <SharedNav activeItem="ver-turmas" />
         <main className="db-main">
           <div className="db-page-title">
             Editar <span style={{ color: "#4CC9F0" }}>Aluno</span>
@@ -175,7 +175,7 @@ function AlunoEditar() {
               {String(error)}
             </p>
             <button
-              onClick={() => navigate("/alunos")}
+              onClick={() => navigate('/ver-turmas')}
               style={{
                 marginTop: 16,
                 background: "rgba(76,201,240,0.1)",
@@ -189,7 +189,7 @@ function AlunoEditar() {
                 fontFamily: "Plus Jakarta Sans,sans-serif",
               }}
             >
-              Voltar para lista
+              Voltar para turmas
             </button>
           </div>
         </main>
@@ -199,7 +199,7 @@ function AlunoEditar() {
 
   return (
     <div className="db-root">
-      <SharedNav activeItem="alunos" />
+      <SharedNav activeItem="ver-turmas" />
 
       <main className="db-main">
         <div className="db-page-title">
@@ -207,7 +207,7 @@ function AlunoEditar() {
         </div>
 
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate(`/aluno/${rm}`)}
           style={{
             display: "inline-flex",
             alignItems: "center",

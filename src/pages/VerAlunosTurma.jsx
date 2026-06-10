@@ -66,7 +66,7 @@ function VerAlunosTurma() {
 
         <div style={{ position: 'relative', zIndex: 1 }}>
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(`/turma/${turmaId}`)}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(76,201,240,0.1)', border: '1px solid rgba(76,201,240,0.25)', borderRadius: '8px', padding: '8px 16px', color: '#4CC9F0', fontSize: '13px', fontWeight: 700, cursor: 'pointer', marginBottom: '20px', fontFamily: 'Plus Jakarta Sans,sans-serif', transition: 'all 0.2s' }}
             onMouseOver={e => { e.currentTarget.style.background = 'rgba(76,201,240,0.2)' }}
             onMouseOut={e => { e.currentTarget.style.background = 'rgba(76,201,240,0.1)' }}

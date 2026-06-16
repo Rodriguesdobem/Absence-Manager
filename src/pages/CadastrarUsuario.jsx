@@ -145,6 +145,7 @@ function CadastrarUsuario() {
       if (nivelAcesso === 'ALUNO' && turmaSelecionadaId) {
         const alunoResponse = await AlunoServices.cadastrarAluno({
           nome: `${formData.get('firstname')} ${formData.get('lastname')}`,
+          email: formData.get('email'),
           dataNascimento: formData.get('dataNascimento'),
           sexo: formData.get('sexo'),
           cpf: formData.get('cpf'),

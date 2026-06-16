@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import SharedNav from '../common/SharedNav'
+import ClimaMundial from './ClimaMundial'
 
 function Dashboard() {
   const navigate = useNavigate()
   const [currentTime, setCurrentTime] = useState(new Date())
+
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
@@ -66,26 +68,8 @@ function Dashboard() {
           </div>
 
           {/* Weather */}
-          <div className="db-card db-card-weather">
-            <div className="db-card-section-title">
-              <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>
-              Clima Mundial
-            </div>
-            <div className="db-weather-main">
-              <div className="db-weather-city">Barueri</div>
-              <div className="db-weather-temp">28°C</div>
-              <div className="db-weather-desc"><span>🌤</span><span>Ensolarado</span></div>
-              <div className="db-weather-meta">
-                <div className="db-weather-meta-item"><span>💧</span><span>Umidade: 65%</span></div>
-                <div className="db-weather-meta-item"><span>💨</span><span>Vento: 12 km/h</span></div>
-              </div>
-            </div>
-            <div className="db-weather-cities">
-              <div className="db-city-chip">São Paulo<br/><strong>25°C</strong></div>
-              <div className="db-city-chip">Rio de Janeiro<br/><strong>32°C</strong></div>
-              <div className="db-city-chip">Brasília<br/><strong>26°C</strong></div>
-            </div>
-          </div>
+          <ClimaMundial />
+
         </div>
       </main>
 

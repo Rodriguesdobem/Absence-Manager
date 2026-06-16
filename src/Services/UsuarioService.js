@@ -31,10 +31,23 @@ const signin = async (identifier, senha) => {
     });
 
     if (response.status === 200) {
-        const userRes = await http.mainInstance.get(API_URL + 'me', {
-            withCredentials: true,
-        });
-        const user = userRes.data;
+        let user = null;
+
+        try {
+            const userRes = await http.mainInstance.get(API_URL + 'me', {
+                withCredentials: true,
+            });
+            user = userRes.data;
+        } catch (err) {
+            const usersRes = await http.mainInstance.get(API_URL + 'all');
+            const normalizedIdentifier = String(identifier || '').trim().toLowerCase();
+            user = (usersRes.data || []).find(item =>
+                String(item.username || '').trim().toLowerCase() === normalizedIdentifier
+            );
+        }
+
+        if (!user) return null;
+
         localStorage.setItem('user', JSON.stringify(user));
         return user;
     }

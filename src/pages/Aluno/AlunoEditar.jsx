@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AlunoServices from "../../Services/AlunoServices";
+import UsuarioService from "../../Services/UsuarioService";
 import SharedNav from "../../common/SharedNav";
+
+
 
 function normalizeDateInput(value) {
   // input type="date" exige exatamente "YYYY-MM-DD"
@@ -34,6 +37,7 @@ function AlunoEditar() {
 
   const [form, setForm] = useState({
     nome: "",
+    email: "",
     data_nascimento: "",
     sexo: "",
     cpf: "",
@@ -94,6 +98,7 @@ function AlunoEditar() {
 
       setForm({
         nome: aluno.nome ?? "",
+        email: aluno.email ?? "",
         data_nascimento: normalizeDateInput(aluno.dataNascimento ?? aluno.data_nascimento ?? ""),
         sexo: aluno.sexo ?? "",
         cpf: aluno.cpf ?? "",
@@ -117,15 +122,41 @@ function AlunoEditar() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rm]);
 
+  const [fotoFile, setFotoFile] = useState(null);
+  const [fotoPreviewUrl, setFotoPreviewUrl] = useState("");
+
+  useEffect(() => {
+    if (!fotoFile) {
+      setFotoPreviewUrl("");
+      return;
+    }
+
+    const url = URL.createObjectURL(fotoFile);
+    setFotoPreviewUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [fotoFile]);
+
+  const getFotoSrc = (aluno) => {
+    const foto = aluno?.usuario?.foto || aluno?.usuario?.fotoBase64 || aluno?.foto;
+    if (!foto) return "";
+    if (String(foto).startsWith("data:")) return foto;
+    return `data:image/jpeg;base64,${foto}`;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
 
     try {
       setLoading(true);
+
       const payload = {
         ...alunoAtual,
         nome: form.nome,
+        email: form.email,
         dataNascimento: form.data_nascimento,
         sexo: form.sexo,
         cpf: form.cpf,
@@ -135,6 +166,30 @@ function AlunoEditar() {
       };
 
       await AlunoServices.atualizarAluno(rm, payload);
+
+      // Se o usuário selecionou uma nova foto, envia junto via endpoint do Usuario (multipart)
+      if (fotoFile && alunoAtual?.usuario?.id) {
+        const fd = new FormData();
+        fd.append("file", fotoFile);
+
+        // mantém os campos de usuario caso seu backend exija RequestPart("usuario")
+        // (se seu backend não exigir, isso não prejudica)
+        fd.append(
+          "usuario",
+          new Blob([
+            JSON.stringify({
+              id: alunoAtual.usuario.id,
+              nome: form.nome || alunoAtual.usuario.nome,
+              username: alunoAtual.usuario.username,
+              nivelAcesso: alunoAtual.usuario.nivelAcesso || "ALUNO",
+              statusUsuario: alunoAtual.usuario.statusUsuario || "ATIVO",
+            })
+          ], { type: "application/json" })
+        );
+
+        await UsuarioService.update(alunoAtual.usuario.id, fd);
+      }
+
       navigate(`/aluno/${rm}`);
     } catch (err) {
       setError(getAxiosErrorMessage(err));
@@ -142,6 +197,7 @@ function AlunoEditar() {
       setLoading(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -236,6 +292,100 @@ function AlunoEditar() {
 
           <div className="db-card" style={{ padding: "32px" }}>
             <form onSubmit={handleSubmit}>
+              <div style={{ gridColumn: "1 / -1", marginBottom: 14 }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
+                  Foto do Aluno (opcional)
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(76,201,240,0.12)", border: "2px solid rgba(76,201,240,0.35)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                    {fotoPreviewUrl ? (
+                      <img src={fotoPreviewUrl} alt="Prévia da foto" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <span style={{ fontSize: 30, fontWeight: 800, color: "#4CC9F0" }}>
+                        {(form.nome || "Aluno").charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <input
+                      id="foto-input-editar"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        setFotoFile(file || null);
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const el = document.getElementById('foto-input-editar');
+                        if (el) el.click();
+                      }}
+                      style={{
+                        width: "fit-content",
+                        background: "rgba(76,201,240,0.1)",
+                        border: "1px solid rgba(76,201,240,0.35)",
+                        borderRadius: 10,
+                        padding: "10px 14px",
+                        color: "#4CC9F0",
+                        fontSize: 13,
+                        fontWeight: 900,
+                        cursor: "pointer",
+                        fontFamily: "Plus Jakarta Sans,sans-serif",
+                        transition: "all 0.2s",
+                      }}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.background = "#4CC9F0";
+                        e.currentTarget.style.color = "#000";
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.background = "rgba(76,201,240,0.1)";
+                        e.currentTarget.style.color = "#4CC9F0";
+                      }}
+                    >
+                      {fotoFile ? "Foto selecionada ✓" : "Selecionar foto"}
+                    </button>
+
+                    {fotoPreviewUrl && (
+                      <button
+                        type="button"
+                        onClick={() => setFotoFile(null)}
+                        style={{
+                          width: "fit-content",
+                          background: "rgba(76,201,240,0.1)",
+                          border: "1px solid rgba(76,201,240,0.35)",
+                          borderRadius: 10,
+                          padding: "10px 14px",
+                          color: "#4CC9F0",
+                          fontSize: 13,
+                          fontWeight: 900,
+                          cursor: "pointer",
+                          fontFamily: "Plus Jakarta Sans,sans-serif",
+                          transition: "all 0.2s",
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.background = "rgba(242,95,92,0.12)";
+                          e.currentTarget.style.border = "1px solid rgba(242,95,92,0.25)";
+                          e.currentTarget.style.color = "#f25f5c";
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.background = "rgba(76,201,240,0.1)";
+                          e.currentTarget.style.border = "1px solid rgba(76,201,240,0.35)";
+                          e.currentTarget.style.color = "#4CC9F0";
+                        }}
+                      >
+                        Remover foto
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
               <div style={sectionStyle}>
                 <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" style={{ width: 12, height: 12 }}>
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -248,6 +398,11 @@ function AlunoEditar() {
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={labelStyle}>Nome</label>
                   <input name="nome" type="text" value={form.nome} onChange={handleChange} style={inputStyle} required />
+                </div>
+
+                <div>
+                  <label style={labelStyle}>Email</label>
+                  <input name="email" type="email" value={form.email} onChange={handleChange} style={inputStyle} required />
                 </div>
 
                 <div>

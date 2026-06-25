@@ -28,6 +28,7 @@ export default function AlunoPerfilIntegrado() {
   const [error, setError] = useState("");
   const [aluno, setAluno] = useState(null);
   const [turmasAluno, setTurmasAluno] = useState([]);
+  const [frequencia, setFrequencia] = useState(null);
 
   const parsedRa = Number(ra);
 
@@ -37,14 +38,17 @@ export default function AlunoPerfilIntegrado() {
       setError("");
       setAluno(null);
       setTurmasAluno([]);
+      setFrequencia(null);
 
       try {
-        const [alunoResponse, turmasResponse] = await Promise.all([
+        const [alunoResponse, turmasResponse, frequenciaResponse] = await Promise.all([
           AlunoServices.buscarAlunoPorRm(parsedRa),
           TurmaAlunoServices.listarPorAluno(parsedRa),
+          AlunoServices.buscarFrequenciaPorRm(parsedRa),
         ]);
         setAluno(alunoResponse.data);
         setTurmasAluno(turmasResponse.data || []);
+        setFrequencia(frequenciaResponse.data);
       } catch (e) {
         setError(getAxiosErrorMessage(e));
       } finally {
@@ -56,6 +60,10 @@ export default function AlunoPerfilIntegrado() {
   }, [parsedRa]);
 
   const freq = useMemo(() => {
+    if (Number(frequencia?.totalChamadas || 0) > 0) {
+      return Number(frequencia?.percentualPresenca || 0);
+    }
+
     // O backend que você mostrou não retorna campos de frequência.
     // Mantemos a lógica apenas se vierem campos como totalAulas/faltas.
     const totalAulas = aluno?.totalAulas;
@@ -63,9 +71,16 @@ export default function AlunoPerfilIntegrado() {
 
     if (!totalAulas || !Number.isFinite(totalAulas) || !Number.isFinite(Number(faltas))) return null;
     return parseFloat(((totalAulas - faltas) / totalAulas * 100).toFixed(1));
-  }, [aluno]);
+  }, [aluno, frequencia]);
 
   const freqColor = freq == null ? "#4CC9F0" : freq >= 75 ? "#4ade80" : "#f25f5c";
+  const totalChamadas = Number(frequencia?.totalChamadas || 0);
+  const totalPresencas = Number(frequencia?.presencas || 0);
+  const totalFaltas = Number(frequencia?.faltas || 0);
+  const percentualPresencaGrafico = totalChamadas > 0 ? Number(frequencia?.percentualPresenca || 0) : null;
+  const percentualFaltasGrafico = totalChamadas > 0 ? Number(frequencia?.percentualFaltas || 0) : 0;
+  const corPresencaGrafico = "#4ade80";
+  const corFaltaGrafico = "#f25f5c";
   const fotoSrc = getFotoSrc(aluno);
   const turmasAtivas = turmasAluno.filter(vinculo => vinculo.status !== false);
   const turmaTexto = turmasAtivas.length
@@ -269,6 +284,49 @@ export default function AlunoPerfilIntegrado() {
                   </div>
                 ) : (
                   <>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "22px", alignItems: "center", marginBottom: "18px" }}>
+                      <div
+                        aria-label={`Grafico de frequencia: ${percentualPresencaGrafico}% presenca e ${percentualFaltasGrafico}% faltas`}
+                        role="img"
+                        style={{
+                          width: 150,
+                          height: 150,
+                          borderRadius: "50%",
+                          background: `conic-gradient(${corPresencaGrafico} 0 ${percentualPresencaGrafico}%, ${corFaltaGrafico} ${percentualPresencaGrafico}% 100%)`,
+                          display: "grid",
+                          placeItems: "center",
+                          boxShadow: "0 0 0 1px rgba(255,255,255,0.08)",
+                        }}
+                      >
+                        <div style={{ width: 92, height: 92, borderRadius: "50%", background: "#0c0c14", display: "grid", placeItems: "center", border: "1px solid rgba(255,255,255,0.08)" }}>
+                          <div style={{ textAlign: "center" }}>
+                            <div style={{ fontSize: 26, fontWeight: 900, color: corPresencaGrafico, lineHeight: 1 }}>{percentualPresencaGrafico}%</div>
+                            <div style={{ fontSize: 10, fontWeight: 800, color: "rgba(255,255,255,0.38)", textTransform: "uppercase", marginTop: 4 }}>Presenca</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: "grid", gap: 10 }}>
+                        <div style={{ fontSize: 13, color: "rgba(255,255,255,0.55)" }}>
+                          Total de chamadas: <strong style={{ color: "#fff" }}>{totalChamadas}</strong>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.72)", fontSize: 13 }}>
+                            <span style={{ width: 10, height: 10, borderRadius: "50%", background: corPresencaGrafico }} />
+                            Presencas
+                          </span>
+                          <strong style={{ color: "#fff" }}>{totalPresencas}</strong>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                          <span style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.72)", fontSize: 13 }}>
+                              <span style={{ width: 10, height: 10, borderRadius: "50%", background: corFaltaGrafico }} />
+                            Faltas
+                          </span>
+                          <strong style={{ color: "#fff" }}>{totalFaltas}</strong>
+                        </div>
+                      </div>
+                    </div>
+
                     <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "10px" }}>
                       <span style={{ fontSize: "40px", fontWeight: 800, color: freqColor, letterSpacing: "-1px", lineHeight: 1 }}>{freq}%</span>
                       <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginBottom: "6px" }}>

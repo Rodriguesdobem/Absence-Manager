@@ -18,6 +18,10 @@ const buscarAlunoPorRm = (rm) => {
   return api.get(`/api/v1/aluno/${rm}`);
 };
 
+const buscarFrequenciaPorRm = (rm) => {
+  return api.get(`/api/v1/aluno/${rm}/frequencia`);
+};
+
 const cadastrarAluno = (aluno) => {
   return api.post("/api/v1/aluno", aluno);
 };
@@ -37,6 +41,7 @@ const inativarAluno = (rm) => {
 const AlunoServices = {
   listarAlunos,
   buscarAlunoPorRm,
+  buscarFrequenciaPorRm,
   cadastrarAluno,
   atualizarAluno,
   excluirAluno,

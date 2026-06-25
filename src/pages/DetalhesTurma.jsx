@@ -227,54 +227,7 @@ function DetalhesTurma() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '14px', position: 'relative', zIndex: 1 }}>
-          {[
-            { key: 'alunos', label: 'Alunos cadastrados' },
-            { key: 'chamada', label: 'Chamada' },
-          ].map(tab => {
-            const selected = activeTab === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                aria-pressed={selected}
-                style={{
-                  ...buttonBase,
-                  minHeight: 44,
-                  background: selected ? '#4CC9F0' : 'rgba(255,255,255,0.04)',
-                  border: selected ? '1px solid #4CC9F0' : '1px solid rgba(255,255,255,0.08)',
-                  color: selected ? '#050509' : 'rgba(255,255,255,0.75)',
-                }}
-              >
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
-
-        {activeTab === 'alunos' ? (
-          <AlunosTab alunosTurma={alunosTurma} navigate={navigate} />
-        ) : (
-          <ChamadaTab
-            chamada={chamada}
-            chamadaError={chamadaError}
-            chamadaMessage={chamadaMessage}
-            gerarChamada={gerarChamada}
-            atualizarChamada={atualizarChamada}
-            confirmarChamada={confirmarChamada}
-            loadingChamada={loadingChamada}
-            visualizandoHistorico={visualizandoHistorico}
-            historicoChamadas={historicoChamadas}
-            loadingHistorico={loadingHistorico}
-            selecionarChamada={(item) => {
-              setChamada(item)
-              setVisualizandoHistorico(true)
-            }}
-            carregarHistorico={carregarHistorico}
-            stats={stats}
-          />
-        )}
+        <AlunosTab alunosTurma={alunosTurma} navigate={navigate} />
       </main>
     </div>
   )

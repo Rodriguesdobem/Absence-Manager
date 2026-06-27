@@ -3,6 +3,7 @@ import SharedNav from '../common/SharedNav'
 import AlunoServices from '../Services/AlunoServices'
 import TurmaServices from '../Services/TurmaServices'
 import UsuarioService from '../Services/UsuarioService'
+import ProfessorService from '../Services/ProfessorService'
 
 const THEMES = [
   { key: 'dark', label: 'Escuro' },
@@ -11,13 +12,15 @@ const THEMES = [
 ]
 
 function Perfil() {
+  const currentUser = UsuarioService.getCurrentUser()
+  const isProfessor = currentUser?.nivelAcesso === 'PROFESSOR'
   const [theme, setTheme] = useState(() => localStorage.getItem('admin-theme') || 'dark')
-  const [userInfo, setUserInfo] = useState(null)
+  const [userInfo, setUserInfo] = useState(currentUser)
   const [stats, setStats] = useState({
     totalAlunos: 0,
     totalTurmas: 0,
     totalUsuarios: 0,
-    diasAtivo: 30,
+    chamadasFeitas: 0,
     loading: true,
     error: null,
   })
@@ -26,8 +29,31 @@ function Perfil() {
     const carregarDados = async () => {
       try {
         setStats(prev => ({ ...prev, loading: true, error: null }))
-        
-        const [alunosRes, turmasRes, usuariosRes, meRes] = await Promise.all([
+
+        const meRes = await UsuarioService.me().catch(e => {
+          console.error('Erro ao buscar usuario atual:', e.message)
+          return { data: currentUser }
+        })
+        setUserInfo(meRes.data || currentUser)
+
+        if (isProfessor) {
+          const dashboardRes = await ProfessorService.dashboard().catch(e => {
+            console.error('Erro ao buscar dados do professor:', e.message)
+            return { data: {} }
+          })
+
+          setStats({
+            totalAlunos: dashboardRes.data?.totalAlunos || 0,
+            totalTurmas: dashboardRes.data?.totalTurmas || 0,
+            totalUsuarios: 0,
+            chamadasFeitas: dashboardRes.data?.chamadasFeitas || 0,
+            loading: false,
+            error: null,
+          })
+          return
+        }
+
+        const [alunosRes, turmasRes, usuariosRes] = await Promise.all([
           AlunoServices.listarAlunos().catch(e => {
             console.error('Erro ao buscar alunos:', e.message)
             return { data: [] }
@@ -37,26 +63,21 @@ function Perfil() {
             return { data: [] }
           }),
           UsuarioService.findAll().catch(e => {
-            console.error('Erro ao buscar usuários:', e.message)
+            console.error('Erro ao buscar usuarios:', e.message)
             return { data: [] }
-          }),
-          UsuarioService.me().catch(e => {
-            console.error('Erro ao buscar usuário atual:', e.message)
-            return { data: null }
           }),
         ])
 
-        setUserInfo(meRes.data)
         setStats({
           totalAlunos: alunosRes.data?.length || 0,
           totalTurmas: turmasRes.data?.length || 0,
           totalUsuarios: usuariosRes.data?.length || 0,
-          diasAtivo: 30,
+          chamadasFeitas: 0,
           loading: false,
           error: null,
         })
       } catch (err) {
-        console.error('Erro ao carregar estatísticas:', err.message)
+        console.error('Erro ao carregar estatisticas:', err.message)
         setStats(prev => ({
           ...prev,
           loading: false,
@@ -66,7 +87,7 @@ function Perfil() {
     }
 
     carregarDados()
-  }, [])
+  }, [currentUser?.id, isProfessor])
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -78,6 +99,16 @@ function Perfil() {
     [theme]
   )
 
+  const fallbackName = isProfessor ? 'Professor' : 'Administrador'
+  const displayName = userInfo?.nome || fallbackName
+  const displayEmail = userInfo?.username || (isProfessor ? 'professor@escola.com' : 'admin@escola.com')
+  const displayRole = userInfo?.nivelAcesso === 'ADMIN'
+    ? 'Administrador'
+    : userInfo?.nivelAcesso === 'PROFESSOR'
+      ? 'Professor'
+      : fallbackName
+  const displayRoleFull = userInfo?.nivelAcesso === 'ADMIN' ? 'Administrador do Sistema' : displayRole
+
   return (
     <div className="db-root">
       <SharedNav activeItem="perfil" />
@@ -87,11 +118,11 @@ function Perfil() {
 
         <div className="pf-profile-hero">
           <div className="pf-hero-grid" />
-          <div className="pf-hero-avatar">{userInfo?.nome?.[0] || 'A'}</div>
-          <div className="pf-hero-name">{userInfo?.nome || 'Administrador'}</div>
+          <div className="pf-hero-avatar">{displayName[0] || 'A'}</div>
+          <div className="pf-hero-name">{displayName}</div>
           <div className="pf-hero-role">
             <span className="pf-role-dot" />
-            {userInfo?.nivelAcesso === 'ADMIN' ? 'Administrador do Sistema' : userInfo?.nivelAcesso || 'Administrador'}
+            {displayRoleFull}
           </div>
           <div className="pf-hero-accent" />
         </div>
@@ -102,9 +133,9 @@ function Perfil() {
               <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
               Informacoes Pessoais
             </div>
-            <div className="pf-info-row"><span className="pf-info-label">Nome</span><span className="pf-info-value">{userInfo?.nome || 'Administrador'}</span></div>
-            <div className="pf-info-row"><span className="pf-info-label">Email</span><span className="pf-info-value">{userInfo?.username || 'admin@escola.com'}</span></div>
-            <div className="pf-info-row"><span className="pf-info-label">Cargo</span><span className="pf-info-value">{userInfo?.nivelAcesso === 'ADMIN' ? 'Administrador' : userInfo?.nivelAcesso || 'Administrador'}</span></div>
+            <div className="pf-info-row"><span className="pf-info-label">Nome</span><span className="pf-info-value">{displayName}</span></div>
+            <div className="pf-info-row"><span className="pf-info-label">Email</span><span className="pf-info-value">{displayEmail}</span></div>
+            <div className="pf-info-row"><span className="pf-info-label">Cargo</span><span className="pf-info-value">{displayRole}</span></div>
             <div className="pf-info-row"><span className="pf-info-label">Desde</span><span className="pf-info-value">{userInfo?.dataCadastro ? new Date(userInfo.dataCadastro).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : 'Janeiro 2023'}</span></div>
           </div>
 
@@ -169,22 +200,22 @@ function Perfil() {
               <div style={{ textAlign: 'center', padding: '20px', opacity: 0.6 }}>Carregando...</div>
             ) : stats.error ? (
               <div style={{ textAlign: 'center', padding: '20px', opacity: 0.7, color: '#f87171', fontSize: '12px', wordBreak: 'break-word' }}>
-                ⚠️ {stats.error}
-                <div style={{ marginTop: '8px', opacity: 0.7, fontSize: '11px' }}>Verifique se o backend está rodando em http://localhost:8080</div>
+                {stats.error}
+                <div style={{ marginTop: '8px', opacity: 0.7, fontSize: '11px' }}>Verifique se o backend esta rodando em http://localhost:8080</div>
               </div>
             ) : (
               <div className="pf-stats-grid">
                 <div className="pf-stat-card">
                   <div className="pf-stat-number">{stats.totalAlunos}</div>
-                  <div className="pf-stat-label">Alunos Cadastrados</div>
+                  <div className="pf-stat-label">{isProfessor ? 'Alunos Vinculados' : 'Alunos Cadastrados'}</div>
                 </div>
                 <div className="pf-stat-card">
                   <div className="pf-stat-number">{stats.totalTurmas}</div>
-                  <div className="pf-stat-label">Turmas Criadas</div>
+                  <div className="pf-stat-label">{isProfessor ? 'Minhas Turmas' : 'Turmas Criadas'}</div>
                 </div>
                 <div className="pf-stat-card">
-                  <div className="pf-stat-number">{stats.totalUsuarios}</div>
-                  <div className="pf-stat-label">Usuários Ativos</div>
+                  <div className="pf-stat-number">{isProfessor ? stats.chamadasFeitas : stats.totalUsuarios}</div>
+                  <div className="pf-stat-label">{isProfessor ? 'Chamadas Feitas' : 'Usuarios Ativos'}</div>
                 </div>
               </div>
             )}

@@ -186,7 +186,11 @@ function Welcome() {
               className="hero-reset-button am-hero-brand"
               aria-label="Voltar ao inicio"
             >
-              <span className="liquid-glass am-hero-brand-mark">AM</span>
+              <img
+                src="/ABS.png"
+                alt="ABS"
+                className="liquid-glass am-hero-brand-mark am-hero-brand-image"
+              />
               <span className="am-hero-brand-text">Absence Manager</span>
             </button>
 

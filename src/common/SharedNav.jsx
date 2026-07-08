@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import UsuarioService from '../Services/UsuarioService'
 
@@ -6,8 +6,16 @@ function SharedNav({ title, activeItem }) {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [fotoPreviewUrl, setFotoPreviewUrl] = useState(null)
   const user = UsuarioService.getCurrentUser()
   const isProfessor = user?.nivelAcesso === 'PROFESSOR'
+
+  useEffect(() => {
+    const savedPhoto = localStorage.getItem('user-photo-url')
+    if (savedPhoto) {
+      setFotoPreviewUrl(savedPhoto)
+    }
+  }, [])
 
   const adminNavItems = [
     { to: '/dashboard', label: 'Dashboard', key: 'dashboard', icon: <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
@@ -80,7 +88,13 @@ function SharedNav({ title, activeItem }) {
         </nav>
         <div className="hb-sidebar-footer">
           <Link className="hb-sidebar-user" to="/perfil" onClick={() => setMenuOpen(false)}>
-            <div className="hb-sidebar-user-avatar">{String(user?.nome || 'A').charAt(0).toUpperCase()}</div>
+            <div className="hb-sidebar-user-avatar">
+              {fotoPreviewUrl ? (
+                <img src={fotoPreviewUrl} alt="Foto de Perfil" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%', display: 'block' }} />
+              ) : (
+                String(user?.nome || 'A').charAt(0).toUpperCase()
+              )}
+            </div>
             <div>
               <div className="hb-sidebar-user-name">{user?.nome || (isProfessor ? 'Professor' : 'Administrador')}</div>
               <div className="hb-sidebar-user-role">{isProfessor ? 'Area do Professor' : 'Admin do Sistema'}</div>

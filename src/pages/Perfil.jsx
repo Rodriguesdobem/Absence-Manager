@@ -24,6 +24,32 @@ function Perfil() {
     loading: true,
     error: null,
   })
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [photoUrl, setPhotoUrl] = useState(() => localStorage.getItem('user-photo-url') || null)
+  const [fotoFile, setFotoFile] = useState(null)
+  const [fotoPreviewUrl, setFotoPreviewUrl] = useState(() => {
+    const saved = localStorage.getItem('user-photo-url')
+    return saved || ''
+  })
+  const fileInputRef = React.useRef(null)
+
+  useEffect(() => {
+    if (!fotoFile) {
+      return
+    }
+
+    const url = URL.createObjectURL(fotoFile)
+    setFotoPreviewUrl(url)
+
+    return () => URL.revokeObjectURL(url)
+  }, [fotoFile])
+
+  useEffect(() => {
+    const savedPhoto = localStorage.getItem('user-photo-url')
+    if (savedPhoto) {
+      setFotoPreviewUrl(savedPhoto)
+    }
+  }, [])
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -89,6 +115,51 @@ function Perfil() {
     carregarDados()
   }, [currentUser?.id, isProfessor])
 
+  const handlePhotoUpload = async (event) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione um arquivo de imagem válido')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Arquivo muito grande. Máximo 5MB')
+      return
+    }
+
+    setUploadingPhoto(true)
+    setFotoFile(file)
+    
+    try {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const dataUrl = e.target?.result
+        if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
+          localStorage.setItem('user-photo-url', dataUrl)
+          setPhotoUrl(dataUrl)
+          alert('Foto de perfil atualizada com sucesso!')
+        }
+      }
+      reader.readAsDataURL(file)
+    } catch (err) {
+      console.error('Erro ao fazer upload da foto:', err)
+      alert('Erro ao atualizar a foto de perfil')
+      setFotoFile(null)
+      setFotoPreviewUrl('')
+    } finally {
+      setUploadingPhoto(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const triggerPhotoInput = () => {
+    fileInputRef.current?.click()
+  }
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     localStorage.setItem('admin-theme', theme)
@@ -118,7 +189,13 @@ function Perfil() {
 
         <div className="pf-profile-hero">
           <div className="pf-hero-grid" />
-          <div className="pf-hero-avatar">{displayName[0] || 'A'}</div>
+          <div className="pf-hero-avatar">
+            {fotoPreviewUrl ? (
+              <img src={fotoPreviewUrl} alt="Foto de Perfil" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+            ) : (
+              displayName[0] || 'A'
+            )}
+          </div>
           <div className="pf-hero-name">{displayName}</div>
           <div className="pf-hero-role">
             <span className="pf-role-dot" />
@@ -144,6 +221,41 @@ function Perfil() {
               <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               Configuracoes
             </div>
+            <div className="pf-photo-panel">
+              <div style={{ display: 'none' }}>
+                <input
+                  ref={fileInputRef}
+                  id="foto-input-perfil"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                />
+              </div>
+              
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(76,201,240,0.12)', border: '2px solid rgba(76,201,240,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', fontWeight: 800, color: '#4CC9F0', overflow: 'hidden', cursor: 'pointer', marginBottom: '20px' }} onClick={triggerPhotoInput}>
+                {fotoPreviewUrl ? (
+                  <img
+                    src={fotoPreviewUrl}
+                    alt="Foto de Perfil"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  displayName[0] || 'A'
+                )}
+              </div>
+              
+              <button
+                className="pf-config-btn pf-photo-upload-btn"
+                onClick={triggerPhotoInput}
+                disabled={uploadingPhoto}
+              >
+                <span className="pf-config-btn-left">
+                  <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  {uploadingPhoto ? 'Enviando...' : 'Escolher Foto'}
+                </span>
+              </button>
+            </div>
+
             <button className="pf-config-btn">
               <span className="pf-config-btn-left">
                 <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>

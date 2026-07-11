@@ -196,6 +196,17 @@ function Perfil() {
               displayName[0] || 'A'
             )}
           </div>
+          <button
+            type="button"
+            className="pf-config-btn pf-hero-photo-btn"
+            onClick={triggerPhotoInput}
+            disabled={uploadingPhoto}
+          >
+            <span className="pf-config-btn-left">
+              <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              {uploadingPhoto ? 'Enviando...' : 'Editar Foto'}
+            </span>
+          </button>
           <div className="pf-hero-name">{displayName}</div>
           <div className="pf-hero-role">
             <span className="pf-role-dot" />
@@ -221,39 +232,14 @@ function Perfil() {
               <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               Configuracoes
             </div>
-            <div className="pf-photo-panel">
-              <div style={{ display: 'none' }}>
-                <input
-                  ref={fileInputRef}
-                  id="foto-input-perfil"
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                />
-              </div>
-              
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'rgba(76,201,240,0.12)', border: '2px solid rgba(76,201,240,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px', fontWeight: 800, color: '#4CC9F0', overflow: 'hidden', cursor: 'pointer', marginBottom: '20px' }} onClick={triggerPhotoInput}>
-                {fotoPreviewUrl ? (
-                  <img
-                    src={fotoPreviewUrl}
-                    alt="Foto de Perfil"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                ) : (
-                  displayName[0] || 'A'
-                )}
-              </div>
-              
-              <button
-                className="pf-config-btn pf-photo-upload-btn"
-                onClick={triggerPhotoInput}
-                disabled={uploadingPhoto}
-              >
-                <span className="pf-config-btn-left">
-                  <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  {uploadingPhoto ? 'Enviando...' : 'Escolher Foto'}
-                </span>
-              </button>
+            <div style={{ display: 'none' }}>
+              <input
+                ref={fileInputRef}
+                id="foto-input-perfil"
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+              />
             </div>
 
             <button className="pf-config-btn">

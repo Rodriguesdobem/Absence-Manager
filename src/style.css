@@ -2317,6 +2317,9 @@ html {
 .pf-hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(76,201,240,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(76,201,240,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
 .pf-hero-avatar{position:relative;z-index:2;width:72px;height:72px;border-radius:50%;background:rgba(76,201,240,0.12);border:2px solid rgba(76,201,240,0.4);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#4CC9F0;}
 .pf-hero-name{position:relative;z-index:2;font-size:26px;font-weight:800;letter-spacing:-0.6px;color:#fff;}
+.pf-hero-photo-btn{position:relative;z-index:2;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;background:rgba(76,201,240,0.12);border:1px solid rgba(76,201,240,0.35);border-radius:999px;color:#E8F6FF;font-size:12px;font-weight:700;min-width:fit-content;box-shadow:none;cursor:pointer;transition:transform 0.2s,border-color 0.2s,opacity 0.2s;}
+.pf-hero-photo-btn:hover{transform:translateY(-1px);border-color:rgba(76,201,240,0.55);background:rgba(76,201,240,0.16);}
+.pf-hero-photo-btn:disabled{opacity:0.75;cursor:default;transform:none;}
 .pf-hero-role{position:relative;z-index:2;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.45);}
 .pf-role-dot{width:6px;height:6px;border-radius:50%;background:#4CC9F0;flex-shrink:0;}
 .pf-hero-accent{position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,#3B429F,#4CC9F0,#3B429F);}
@@ -2339,6 +2342,9 @@ html {
 .pf-config-btn:last-child{margin-bottom:0;}
 .pf-config-btn:hover{background:#131320;border-color:rgba(76,201,240,0.25);color:#fff;}
 .pf-config-btn:hover .pf-config-arrow{color:#4CC9F0;}
+.pf-config-btn.pf-hero-photo-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:auto;background:rgba(76,201,240,0.12);border:1px solid rgba(76,201,240,0.35);border-radius:999px;color:#E8F6FF;font-size:12px;font-weight:700;padding:8px 16px;margin:0;box-shadow:none;text-align:center;}
+.pf-config-btn.pf-hero-photo-btn:hover{background:rgba(76,201,240,0.16);border-color:rgba(76,201,240,0.55);transform:translateY(-1px);}
+.pf-config-btn.pf-hero-photo-btn:disabled{opacity:0.75;cursor:default;transform:none;box-shadow:none;}
 .pf-config-btn-left{display:flex;align-items:center;gap:10px;}
 .pf-config-btn-left svg{width:15px;height:15px;stroke:#4CC9F0;fill:none;flex-shrink:0;}
 .pf-config-arrow{color:rgba(255,255,255,0.2);font-size:14px;transition:all 0.2s;}

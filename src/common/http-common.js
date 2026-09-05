@@ -27,6 +27,23 @@ const multipartInstance = axios.create({
   ],
 });
 
+const attachCurrentUser = (config) => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (user?.username) {
+      config.headers = config.headers || {};
+      config.headers["X-Current-Username"] = user.username;
+    }
+  } catch (err) {
+    // Sem usuario salvo ou JSON invalido: segue apenas com a sessao/cookie.
+  }
+
+  return config;
+};
+
+mainInstance.interceptors.request.use(attachCurrentUser);
+multipartInstance.interceptors.request.use(attachCurrentUser);
+
 
 const apiCep = axios.create( {
   baseURL: `https://viacep.com.br/ws/`,

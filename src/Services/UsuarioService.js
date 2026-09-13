@@ -1,6 +1,12 @@
 import http from '../common/http-common';
 const API_URL = "/usuarios/";
 
+const setCurrentUser = (user) => {
+    if (!user) return;
+    localStorage.setItem('user', JSON.stringify(user));
+    window.dispatchEvent(new Event('absence-manager:user-updated'));
+};
+
 const findAll = () => {
     return http.mainInstance.get(API_URL + 'all');
 };
@@ -48,7 +54,7 @@ const signin = async (identifier, senha) => {
 
         if (!user) return null;
 
-        localStorage.setItem('user', JSON.stringify(user));
+        setCurrentUser(user);
         return user;
     }
 
@@ -140,6 +146,7 @@ const UsuarioService = {
     signin,
     logout,
     getCurrentUser,
+    setCurrentUser,
     me,
     /*create,*/
     update,

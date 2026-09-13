@@ -11,9 +11,33 @@ const THEMES = [
   { key: 'green', label: 'Verde' },
 ]
 
+function getFotoSrc(user) {
+  const foto = user?.foto ?? user?.fotoBase64 ?? user?.fotoUrl
+  if (!foto) return ''
+  if (typeof foto === 'string') {
+    if (foto.startsWith('data:') || foto.startsWith('http://') || foto.startsWith('https://')) return foto
+    return `data:image/jpeg;base64,${foto}`
+  }
+  const bytes = Array.isArray(foto) ? foto : foto?.data
+  if (!Array.isArray(bytes)) return ''
+  let binary = ''
+  bytes.forEach(byte => { binary += String.fromCharCode(byte) })
+  return `data:image/jpeg;base64,${btoa(binary)}`
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
 function Perfil() {
   const currentUser = UsuarioService.getCurrentUser()
   const isProfessor = currentUser?.nivelAcesso === 'PROFESSOR'
+  const isAluno = currentUser?.nivelAcesso === 'ALUNO'
   const [theme, setTheme] = useState(() => localStorage.getItem('admin-theme') || 'dark')
   const [userInfo, setUserInfo] = useState(currentUser)
   const [stats, setStats] = useState({
@@ -25,12 +49,8 @@ function Perfil() {
     error: null,
   })
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
-  const [photoUrl, setPhotoUrl] = useState(() => localStorage.getItem('user-photo-url') || null)
   const [fotoFile, setFotoFile] = useState(null)
-  const [fotoPreviewUrl, setFotoPreviewUrl] = useState(() => {
-    const saved = localStorage.getItem('user-photo-url')
-    return saved || ''
-  })
+  const [fotoPreviewUrl, setFotoPreviewUrl] = useState(() => getFotoSrc(currentUser))
   const fileInputRef = React.useRef(null)
 
   useEffect(() => {
@@ -45,13 +65,6 @@ function Perfil() {
   }, [fotoFile])
 
   useEffect(() => {
-    const savedPhoto = localStorage.getItem('user-photo-url')
-    if (savedPhoto) {
-      setFotoPreviewUrl(savedPhoto)
-    }
-  }, [])
-
-  useEffect(() => {
     const carregarDados = async () => {
       try {
         setStats(prev => ({ ...prev, loading: true, error: null }))
@@ -60,7 +73,15 @@ function Perfil() {
           console.error('Erro ao buscar usuario atual:', e.message)
           return { data: currentUser }
         })
-        setUserInfo(meRes.data || currentUser)
+        const usuarioAtualizado = meRes.data || currentUser
+        setUserInfo(usuarioAtualizado)
+        setFotoPreviewUrl(getFotoSrc(usuarioAtualizado))
+        UsuarioService.setCurrentUser(usuarioAtualizado)
+
+        if (isAluno) {
+          setStats(prev => ({ ...prev, loading: false, error: null }))
+          return
+        }
 
         if (isProfessor) {
           const dashboardRes = await ProfessorService.dashboard().catch(e => {
@@ -113,7 +134,7 @@ function Perfil() {
     }
 
     carregarDados()
-  }, [currentUser?.id, isProfessor])
+  }, [currentUser?.id, isProfessor, isAluno])
 
   const handlePhotoUpload = async (event) => {
     const file = event.target.files?.[0]
@@ -131,23 +152,46 @@ function Perfil() {
 
     setUploadingPhoto(true)
     setFotoFile(file)
-    
+
     try {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const dataUrl = e.target?.result
-        if (typeof dataUrl === 'string' && dataUrl.startsWith('data:image/')) {
-          localStorage.setItem('user-photo-url', dataUrl)
-          setPhotoUrl(dataUrl)
-          alert('Foto de perfil atualizada com sucesso!')
-        }
+      if (!currentUser?.id) throw new Error('Usuário atual não identificado.')
+
+      const form = new FormData()
+      form.append('file', file)
+      form.append('usuario', new Blob([JSON.stringify({
+        id: currentUser.id,
+        nome: userInfo?.nome || currentUser.nome,
+        username: userInfo?.username || currentUser.username,
+        nivelAcesso: userInfo?.nivelAcesso || currentUser.nivelAcesso,
+        ...(userInfo?.statusUsuario ? { statusUsuario: userInfo.statusUsuario } : {}),
+      })], { type: 'application/json' }))
+
+      const updateResponse = await UsuarioService.update(currentUser.id, form)
+      let usuarioAtualizado = updateResponse.data && typeof updateResponse.data === 'object'
+        ? { ...currentUser, ...updateResponse.data }
+        : currentUser
+
+      try {
+        const { data } = await UsuarioService.me()
+        usuarioAtualizado = { ...usuarioAtualizado, ...data }
+      } catch (refreshError) {
+        console.warn('A foto foi salva, mas não foi possível recarregar o perfil:', refreshError)
       }
-      reader.readAsDataURL(file)
+
+      // Alguns backends respondem ao PUT sem o campo da imagem. Mantém a prévia
+      // nesta sessão até o próximo carregamento, quando ela volta do banco.
+      if (!getFotoSrc(usuarioAtualizado)) {
+        usuarioAtualizado = { ...usuarioAtualizado, foto: await readFileAsDataUrl(file) }
+      }
+      setUserInfo(usuarioAtualizado)
+      UsuarioService.setCurrentUser(usuarioAtualizado)
+      setFotoPreviewUrl(getFotoSrc(usuarioAtualizado))
+      alert('Foto de perfil atualizada com sucesso!')
     } catch (err) {
       console.error('Erro ao fazer upload da foto:', err)
       alert('Erro ao atualizar a foto de perfil')
       setFotoFile(null)
-      setFotoPreviewUrl('')
+      setFotoPreviewUrl(getFotoSrc(userInfo))
     } finally {
       setUploadingPhoto(false)
       if (fileInputRef.current) {
@@ -170,14 +214,14 @@ function Perfil() {
     [theme]
   )
 
-  const fallbackName = isProfessor ? 'Professor' : 'Administrador'
+  const fallbackName = isAluno ? 'Aluno' : isProfessor ? 'Professor' : 'Administrador'
   const displayName = userInfo?.nome || fallbackName
   const displayEmail = userInfo?.username || (isProfessor ? 'professor@escola.com' : 'admin@escola.com')
   const displayRole = userInfo?.nivelAcesso === 'ADMIN'
     ? 'Administrador'
     : userInfo?.nivelAcesso === 'PROFESSOR'
       ? 'Professor'
-      : fallbackName
+      : userInfo?.nivelAcesso === 'ALUNO' ? 'Aluno' : fallbackName
   const displayRoleFull = userInfo?.nivelAcesso === 'ADMIN' ? 'Administrador do Sistema' : displayRole
 
   return (

@@ -2,20 +2,43 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import UsuarioService from '../Services/UsuarioService'
 
+function getFotoSrc(user) {
+  const foto = user?.foto ?? user?.fotoBase64 ?? user?.fotoUrl
+  if (!foto) return ''
+  if (typeof foto === 'string') {
+    if (foto.startsWith('data:') || foto.startsWith('http://') || foto.startsWith('https://')) return foto
+    return `data:image/jpeg;base64,${foto}`
+  }
+  const bytes = Array.isArray(foto) ? foto : foto?.data
+  if (!Array.isArray(bytes)) return ''
+  let binary = ''
+  bytes.forEach(byte => { binary += String.fromCharCode(byte) })
+  return `data:image/jpeg;base64,${btoa(binary)}`
+}
+
 function SharedNav({ title, activeItem }) {
   const navigate = useNavigate()
   const [menuOpen, setMenuOpen] = useState(false)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
-  const [fotoPreviewUrl, setFotoPreviewUrl] = useState(null)
-  const user = UsuarioService.getCurrentUser()
+  const [user, setUser] = useState(() => UsuarioService.getCurrentUser())
   const isProfessor = user?.nivelAcesso === 'PROFESSOR'
+  const isAluno = user?.nivelAcesso === 'ALUNO'
 
   useEffect(() => {
-    const savedPhoto = localStorage.getItem('user-photo-url')
-    if (savedPhoto) {
-      setFotoPreviewUrl(savedPhoto)
-    }
+    const syncUser = () => setUser(UsuarioService.getCurrentUser())
+    window.addEventListener('absence-manager:user-updated', syncUser)
+    UsuarioService.me()
+      .then(({ data }) => {
+        const atualizado = { ...UsuarioService.getCurrentUser(), ...data }
+        UsuarioService.setCurrentUser(atualizado)
+      })
+      .catch(() => {
+        // A sessão local continua disponível caso o servidor esteja temporariamente indisponível.
+      })
+    return () => window.removeEventListener('absence-manager:user-updated', syncUser)
   }, [])
+
+  const fotoPreviewUrl = getFotoSrc(user)
 
   const adminNavItems = [
     { to: '/dashboard', label: 'Dashboard', key: 'dashboard', icon: <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
@@ -33,7 +56,11 @@ function SharedNav({ title, activeItem }) {
     { to: '/professor/relatorios', label: 'Relatorios', key: 'prof-relatorios', icon: <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
     { to: '/perfil', label: 'Meu Perfil', key: 'perfil', icon: <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
   ]
-  const navItems = isProfessor ? professorNavItems : adminNavItems
+  const alunoNavItems = [
+    { to: '/aluno', label: 'Minha Área', key: 'aluno-area', icon: <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 16v-3M12 16V8M17 16v-5"/></svg> },
+    { to: '/perfil', label: 'Configurações', key: 'perfil', icon: <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+  ]
+  const navItems = isAluno ? alunoNavItems : isProfessor ? professorNavItems : adminNavItems
 
   return (
     <>
@@ -70,13 +97,13 @@ function SharedNav({ title, activeItem }) {
             </Link>
           ))}
           <div className="hb-sidebar-section-label">Gestão</div>
-          {navItems.slice(1, isProfessor ? 3 : 4).map(item => (
+          {navItems.slice(1, isAluno ? 2 : isProfessor ? 3 : 4).map(item => (
             <Link key={item.key} className={`hb-nav-item${activeItem === item.key ? ' hb-active' : ''}`} to={item.to} onClick={() => setMenuOpen(false)}>
               <span className="hb-nav-icon">{item.icon}</span>
               {item.label}
             </Link>
           ))}
-          <div className="hb-sidebar-divider" />
+          {!isAluno && <><div className="hb-sidebar-divider" />
           <div className="hb-sidebar-section-label">Relatórios</div>
           {navItems.slice(isProfessor ? 3 : 4, isProfessor ? 4 : 5).map(item => (
             <Link key={item.key} className={`hb-nav-item${activeItem === item.key ? ' hb-active' : ''}`} to={item.to} onClick={() => setMenuOpen(false)}>
@@ -84,7 +111,7 @@ function SharedNav({ title, activeItem }) {
               {item.label}
             </Link>
           ))}
-          <div className="hb-sidebar-divider" />
+          <div className="hb-sidebar-divider" /></>}
         </nav>
         <div className="hb-sidebar-footer">
           <Link className="hb-sidebar-user" to="/perfil" onClick={() => setMenuOpen(false)}>
@@ -96,8 +123,8 @@ function SharedNav({ title, activeItem }) {
               )}
             </div>
             <div>
-              <div className="hb-sidebar-user-name">{user?.nome || (isProfessor ? 'Professor' : 'Administrador')}</div>
-              <div className="hb-sidebar-user-role">{isProfessor ? 'Area do Professor' : 'Admin do Sistema'}</div>
+              <div className="hb-sidebar-user-name">{user?.nome || (isAluno ? 'Aluno' : isProfessor ? 'Professor' : 'Administrador')}</div>
+              <div className="hb-sidebar-user-role">{isAluno ? 'Área do Aluno' : isProfessor ? 'Area do Professor' : 'Admin do Sistema'}</div>
             </div>
           </Link>
         </div>

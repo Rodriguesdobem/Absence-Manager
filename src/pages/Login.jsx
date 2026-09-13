@@ -227,7 +227,7 @@ export default function Login() {
   useEffect(() => {
     const currentUser = UsuarioService.getCurrentUser()
     if (currentUser) {
-      navigate(currentUser.nivelAcesso === 'PROFESSOR' ? '/professor/dashboard' : currentUser.nivelAcesso === 'ADMIN' ? '/dashboard' : '/perfil');
+      navigate(currentUser.nivelAcesso === 'PROFESSOR' ? '/professor/dashboard' : currentUser.nivelAcesso === 'ADMIN' ? '/dashboard' : '/aluno');
     }
   }, [navigate]);
 
@@ -262,7 +262,7 @@ export default function Login() {
       if (!user) {
         setSubmitError('Login inválido. Verifique o e-mail/usuário e senha.');
       } else {
-        navigate(user.nivelAcesso === 'PROFESSOR' ? '/professor/dashboard' : user.nivelAcesso === 'ADMIN' ? '/dashboard' : '/perfil');
+        navigate(user.nivelAcesso === 'PROFESSOR' ? '/professor/dashboard' : user.nivelAcesso === 'ADMIN' ? '/dashboard' : '/aluno');
       }
     } catch (err) {
       console.error('Falha no login:', err);

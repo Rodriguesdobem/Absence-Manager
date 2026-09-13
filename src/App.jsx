@@ -15,6 +15,7 @@ import VerTurmas from './pages/VerTurmas'
 import DetalhesTurma from './pages/DetalhesTurma'
 import VerAlunosTurma from './pages/VerAlunosTurma'
 import AlunoEditar from './pages/Aluno/AlunoEditar'
+import AlunoHome from './pages/Aluno/AlunoHome'
 import ProfessorDashboard from './pages/Professor/ProfessorDashboard'
 import ProfessorTurmas from './pages/Professor/ProfessorTurmas'
 import ProfessorTurmaDetalhes from './pages/Professor/ProfessorTurmaDetalhes'
@@ -31,7 +32,7 @@ function RequireRole({ role, children }) {
   const user = UsuarioService.getCurrentUser()
   if (!user) return <Navigate to="/login" replace />
   if (user.nivelAcesso !== role) {
-    const fallback = user.nivelAcesso === 'PROFESSOR' ? '/professor/dashboard' : user.nivelAcesso === 'ADMIN' ? '/dashboard' : '/perfil'
+    const fallback = user.nivelAcesso === 'PROFESSOR' ? '/professor/dashboard' : user.nivelAcesso === 'ADMIN' ? '/dashboard' : '/aluno'
     return <Navigate to={fallback} replace />
   }
   return children
@@ -60,6 +61,7 @@ function AnimatedRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<RequireRole role="ADMIN"><Dashboard /></RequireRole>} />
         <Route path="/perfil" element={<RequireAuth><Perfil /></RequireAuth>} />
+        <Route path="/aluno" element={<RequireRole role="ALUNO"><AlunoHome /></RequireRole>} />
         <Route path="/cadastrar-usuario" element={<RequireRole role="ADMIN"><CadastrarUsuario /></RequireRole>} />
         <Route path="/criar-turmas" element={<RequireRole role="ADMIN"><CriarTurmas /></RequireRole>} />
         <Route path="/aluno/:ra" element={<RequireAuth><AlunoPerfilIntegrado /></RequireAuth>} />

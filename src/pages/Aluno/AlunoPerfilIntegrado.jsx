@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import SharedNav from "../../common/SharedNav";
 import AlunoServices from "../../Services/AlunoServices";
 import TurmaAlunoServices from "../../Services/TurmaAlunoServices";
+import UsuarioService from "../../Services/UsuarioService";
 
 function getAxiosErrorMessage(error) {
   return (
@@ -31,6 +32,9 @@ export default function AlunoPerfilIntegrado() {
   const [frequencia, setFrequencia] = useState(null);
 
   const parsedRa = Number(ra);
+  const currentUser = UsuarioService.getCurrentUser();
+  const isAluno = currentUser?.nivelAcesso === "ALUNO";
+  const canManageStudent = currentUser?.nivelAcesso === "ADMIN";
 
   useEffect(() => {
     const fetchAluno = async () => {
@@ -89,12 +93,12 @@ export default function AlunoPerfilIntegrado() {
 
   return (
     <div className="db-root">
-      <SharedNav activeItem="ver-turmas" />
+      <SharedNav activeItem={isAluno ? "aluno-area" : "ver-turmas"} />
 
       <main className="db-main">
         <div className="db-page-title">Perfil do <span style={{ color: "#4CC9F0" }}>Aluno</span></div>
 
-        <button
+        {!isAluno && <button
           onClick={() => navigate('/ver-turmas')}
           style={{
             display: "inline-flex",
@@ -118,7 +122,7 @@ export default function AlunoPerfilIntegrado() {
           onMouseOut={(e) => (e.currentTarget.style.background = "rgba(76,201,240,0.1)")}
         >
           ← Voltar
-        </button>
+        </button>}
 
         {loading ? (
           <div className="db-card" style={{ padding: "24px 28px" }}>
@@ -136,6 +140,10 @@ export default function AlunoPerfilIntegrado() {
         ) : !aluno ? (
           <div className="db-card" style={{ padding: "24px 28px" }}>
             <div className="db-card-section-title">Aluno não encontrado.</div>
+          </div>
+        ) : isAluno && String(aluno?.usuario?.id) !== String(currentUser?.id) ? (
+          <div className="db-card" style={{ padding: "24px 28px" }}>
+            <div className="db-card-section-title">Acesso não autorizado.</div>
           </div>
         ) : (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: "16px", position: "relative", zIndex: 1 }}>
@@ -208,7 +216,7 @@ export default function AlunoPerfilIntegrado() {
 
               </div>
 
-              <button
+              {canManageStudent && <button
                 onClick={() => navigate(`/editar-aluno/${aluno?.rm ?? parsedRa}`)}
                 style={{
                   width: "100%",
@@ -234,7 +242,7 @@ export default function AlunoPerfilIntegrado() {
                 }}
               >
                 Editar Aluno
-              </button>
+              </button>}
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>

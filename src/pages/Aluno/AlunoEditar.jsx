@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import AlunoServices from "../../Services/AlunoServices";
 import UsuarioService from "../../Services/UsuarioService";
+import TurmaServices from "../../Services/TurmaServices";
+import TurmaAlunoServices from "../../Services/TurmaAlunoServices";
 import SharedNav from "../../common/SharedNav";
 
 
@@ -33,7 +35,10 @@ function AlunoEditar() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [alunoAtual, setAlunoAtual] = useState(null);
+  const [turmas, setTurmas] = useState([]);
+  const [loadingTurmas, setLoadingTurmas] = useState(true);
 
   const [form, setForm] = useState({
     nome: "",
@@ -43,6 +48,7 @@ function AlunoEditar() {
     cpf: "",
     telefone: "",
     status_aluno: "",
+    turmaId: "",
   });
 
   const inputStyle = {
@@ -92,9 +98,17 @@ function AlunoEditar() {
     setError("");
 
     try {
-      const response = await AlunoServices.buscarAlunoPorRm(rm);
+      const [response, turmasResponse, vinculosResponse] = await Promise.all([
+        AlunoServices.buscarAlunoPorRm(rm),
+        TurmaServices.listarTurmas(),
+        TurmaAlunoServices.listarPorAluno(rm),
+      ]);
       const aluno = response.data || {};
+      const vinculoAtual = (vinculosResponse.data || []).find(
+        (vinculo) => vinculo.status !== false && vinculo.turma?.id != null
+      );
       setAlunoAtual(aluno);
+      setTurmas(turmasResponse.data || []);
 
       setForm({
         nome: aluno.nome ?? "",
@@ -104,10 +118,12 @@ function AlunoEditar() {
         cpf: aluno.cpf ?? "",
         telefone: aluno.telefone ?? "",
         status_aluno: aluno.status_aluno ?? aluno.statusAluno ?? "",
+        turmaId: vinculoAtual?.turma?.id ? String(vinculoAtual.turma.id) : "",
       });
     } catch (err) {
       setError(getAxiosErrorMessage(err));
     } finally {
+      setLoadingTurmas(false);
       setLoading(false);
     }
   };
@@ -149,11 +165,12 @@ function AlunoEditar() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     try {
       setLoading(true);
 
-      const payload = {
+      const aluno = {
         ...alunoAtual,
         nome: form.nome,
         email: form.email,
@@ -165,7 +182,10 @@ function AlunoEditar() {
         usuario: alunoAtual?.usuario,
       };
 
-      await AlunoServices.atualizarAluno(rm, payload);
+      await AlunoServices.atualizarAluno(rm, {
+        aluno,
+        turmaId: form.turmaId ? Number(form.turmaId) : null,
+      });
 
       // Se o usuário selecionou uma nova foto, envia junto via endpoint do Usuario (multipart)
       if (fotoFile && alunoAtual?.usuario?.id) {
@@ -190,7 +210,8 @@ function AlunoEditar() {
         await UsuarioService.update(alunoAtual.usuario.id, fd);
       }
 
-      navigate(`/aluno/${rm}`);
+      setSuccess("Aluno e turma atualizados com sucesso.");
+      window.setTimeout(() => navigate(`/aluno/${rm}`), 1200);
     } catch (err) {
       setError(getAxiosErrorMessage(err));
     } finally {
@@ -292,6 +313,11 @@ function AlunoEditar() {
 
           <div className="db-card" style={{ padding: "32px" }}>
             <form onSubmit={handleSubmit}>
+              {success && (
+                <div role="status" aria-live="polite" style={{ marginBottom: 16, color: "#4ade80", fontSize: 13, fontWeight: 700 }}>
+                  {success}
+                </div>
+              )}
               <div style={{ gridColumn: "1 / -1", marginBottom: 14 }}>
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
                   Foto do Aluno (opcional)
@@ -444,10 +470,31 @@ function AlunoEditar() {
                   </select>
                 </div>
 
+                <div>
+                  <label htmlFor="turmaId" style={labelStyle}>Turma</label>
+                  <select
+                    id="turmaId"
+                    name="turmaId"
+                    value={form.turmaId}
+                    onChange={handleChange}
+                    style={inputStyle}
+                    disabled={loadingTurmas}
+                    required
+                  >
+                    <option value="">{loadingTurmas ? "Carregando turmas..." : "Selecione a turma"}</option>
+                    {turmas.map((turma) => (
+                      <option key={turma.id} value={turma.id}>
+                        {turma.nome}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
               </div>
 
               <button
                 type="submit"
+                disabled={loading || loadingTurmas}
                 style={{
                   width: "100%",
                   background: "#4CC9F0",

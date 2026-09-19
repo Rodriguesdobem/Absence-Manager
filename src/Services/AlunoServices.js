@@ -11,6 +11,33 @@ const api = axios.create({
   },
 });
 
+// Canal alternativo de sessao para quando o cookie nao sobrevive entre
+// dominios diferentes (frontend e backend hospedados separadamente).
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Se o backend responder 401, as credenciais guardadas localmente nao
+// servem mais - limpa tudo e manda para o login.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error?.response?.status === 401) {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      if (window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 const listarAlunos = () => {
   return api.get("/api/v1/aluno");
 };

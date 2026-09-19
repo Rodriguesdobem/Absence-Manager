@@ -38,11 +38,37 @@ const attachCurrentUser = (config) => {
     // Sem usuario salvo ou JSON invalido: segue apenas com a sessao/cookie.
   }
 
+  // Canal alternativo de sessao: quando o cookie de sessao nao sobrevive
+  // entre dominios diferentes (frontend e backend hospedados separadamente),
+  // o token recebido no login garante que o usuario continue autenticado.
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers = config.headers || {};
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+
   return config;
 };
 
 mainInstance.interceptors.request.use(attachCurrentUser);
 multipartInstance.interceptors.request.use(attachCurrentUser);
+
+// Se o backend responder 401, as credenciais guardadas localmente (usuario
+// e token) nao servem mais - limpa tudo e manda para o login em vez de
+// deixar a aplicacao presa num estado "meio logado" que nunca funciona.
+const handleAuthError = (error) => {
+  if (error?.response?.status === 401) {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    if (window.location.pathname !== "/login") {
+      window.location.href = "/login";
+    }
+  }
+  return Promise.reject(error);
+};
+
+mainInstance.interceptors.response.use((response) => response, handleAuthError);
+multipartInstance.interceptors.response.use((response) => response, handleAuthError);
 
 
 const apiCep = axios.create( {

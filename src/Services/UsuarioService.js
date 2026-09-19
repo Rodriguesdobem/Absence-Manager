@@ -39,6 +39,10 @@ const signin = async (identifier, senha) => {
     if (response.status === 200) {
         let user = null;
 
+        if (response.data?.token) {
+            localStorage.setItem('token', response.data.token);
+        }
+
         try {
             const userRes = await http.mainInstance.get(API_URL + 'me', {
                 withCredentials: true,
@@ -70,6 +74,8 @@ const logout = async () => {
         });
     } catch (err) {
         // ignore logout network failure
+    } finally {
+        localStorage.removeItem('token');
     }
 };
 

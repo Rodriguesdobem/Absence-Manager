@@ -4,6 +4,7 @@ import UsuarioService from '../Services/UsuarioService'
 import TurmaServices from '../Services/TurmaServices'
 import AlunoServices from '../Services/AlunoServices'
 import TurmaAlunoServices from '../Services/TurmaAlunoServices'
+import ValidacaoService from '../Services/ValidacaoService'
 import SharedNav from '../common/SharedNav'
 
 function getCadastroErrorMessage(error) {
@@ -28,6 +29,8 @@ function CadastrarUsuario() {
   const [turmaId, setTurmaId] = useState('')
   const [form, setForm] = useState({ firstname: '', lastname: '', email: '', nivelAcesso: '' })
   const [loadingTurmas, setLoadingTurmas] = useState(false)
+  const [cpfError, setCpfError] = useState('')
+  const [verificandoCpf, setVerificandoCpf] = useState(false)
 
   // Turmas disponíveis (mock do frontend). Se quiser ligar no backend, depois carregamos via API.
   useEffect(() => {
@@ -82,6 +85,29 @@ function CadastrarUsuario() {
     }
   }
 
+  const checarCpf = async (cpf) => {
+    if (!cpf) {
+      setCpfError('')
+      return true
+    }
+    setVerificandoCpf(true)
+    try {
+      const { data } = await ValidacaoService.validarCpf(cpf)
+      setCpfError(data.valido ? '' : 'CPF inválido.')
+      return data.valido
+    } catch (err) {
+      setCpfError('Não foi possível validar o CPF agora.')
+      return false
+    } finally {
+      setVerificandoCpf(false)
+    }
+  }
+
+  const handleCpfBlur = (e) => {
+    e.target.style.borderColor = cpfError ? '#f25f5c' : 'rgba(255,255,255,0.08)'
+    checarCpf(e.target.value)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (senha !== confirmaSenha) {
@@ -94,6 +120,15 @@ function CadastrarUsuario() {
       const nivelAcesso = formData.get('nivelAcesso')
       const turmaSelecionadaId = formData.get('turmaId')
       const turmaSelecionada = turmas.find(t => String(t.id) === String(turmaSelecionadaId))
+
+      if (nivelAcesso === 'ALUNO') {
+        const cpfValido = await checarCpf(formData.get('cpf'))
+        if (!cpfValido) {
+          setMessage({ type: 'error', text: 'Informe um CPF válido para cadastrar o aluno.' })
+          setShowMessage(true)
+          return
+        }
+      }
 
       if (nivelAcesso === 'PROFESSOR' && turmaSelecionada?.professor?.id) {
         setMessage({ type: 'error', text: 'Esta turma ja possui um professor designado.' })
@@ -254,8 +289,20 @@ function CadastrarUsuario() {
                   <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none" style={{ width: 12, height: 12 }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                   Dados do Aluno
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                  {fieldGroup('cpf', 'CPF', 'text', 'Digite o CPF')}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginBottom: cpfError ? '4px' : '20px' }}>
+                  <div>
+                    <label style={labelStyle}>CPF</label>
+                    <input
+                      type="text"
+                      name="cpf"
+                      placeholder="Digite o CPF"
+                      style={{ ...inputStyle, borderColor: cpfError ? '#f25f5c' : 'rgba(255,255,255,0.08)' }}
+                      required
+                      onFocus={e => e.target.style.borderColor = '#4CC9F0'}
+                      onBlur={handleCpfBlur}
+                      onChange={handleChange}
+                    />
+                  </div>
                   {fieldGroup('telefone', 'Telefone', 'text', 'Digite o telefone')}
                   <div>
                     <label style={labelStyle}>Sexo</label>
@@ -273,6 +320,16 @@ function CadastrarUsuario() {
                     </select>
                   </div>
                 </div>
+                {cpfError && (
+                  <div style={{ fontSize: '12px', color: '#f25f5c', marginBottom: '16px' }}>
+                    {cpfError}
+                  </div>
+                )}
+                {verificandoCpf && (
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginBottom: '16px' }}>
+                    Validando CPF...
+                  </div>
+                )}
               </>
             )}
 

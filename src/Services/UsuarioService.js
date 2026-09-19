@@ -135,7 +135,7 @@ const reativar = (id) => {
 
 const alterarSenha = (id, data) => {
     return http.mainInstance.put(API_URL + `${id}/alterar-senha`, null, {
-        params: { senhaAtual: data.senhaAtual, newPassword: data.senha },
+        params: { email: data.email, senhaAtual: data.senhaAtual, newPassword: data.senha },
     });
 };
 

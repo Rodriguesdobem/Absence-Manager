@@ -5,6 +5,7 @@ import TurmaServices from '../Services/TurmaServices'
 import UsuarioService from '../Services/UsuarioService'
 import ProfessorService from '../Services/ProfessorService'
 import PreferenciasService from '../Services/PreferenciasService'
+import ValidacaoService from '../Services/ValidacaoService'
 
 const THEMES = [
   { key: 'dark', label: 'Escuro' },
@@ -55,6 +56,12 @@ function Perfil() {
   const fileInputRef = React.useRef(null)
 
   const [modalAberto, setModalAberto] = useState(null) // 'senha' | 'notificacoes' | 'preferencias' | null
+  const [senhaStep, setSenhaStep] = useState('email') // 'email' | 'senha'
+
+  const [emailConfirmacao, setEmailConfirmacao] = useState('')
+  const [emailConfirmado, setEmailConfirmado] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [verificandoEmail, setVerificandoEmail] = useState(false)
 
   const [formSenha, setFormSenha] = useState({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
   const [senhaError, setSenhaError] = useState('')
@@ -66,12 +73,20 @@ function Perfil() {
 
   const fecharModal = () => {
     setModalAberto(null)
+    setSenhaStep('email')
+    setEmailConfirmacao('')
+    setEmailConfirmado('')
+    setEmailError('')
     setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
     setSenhaError('')
     setSenhaSuccess('')
   }
 
   const abrirModalSenha = () => {
+    setSenhaStep('email')
+    setEmailConfirmacao('')
+    setEmailConfirmado('')
+    setEmailError('')
     setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
     setSenhaError('')
     setSenhaSuccess('')
@@ -86,6 +101,33 @@ function Perfil() {
   const abrirModalPreferencias = () => {
     setPreferencias(PreferenciasService.obterPreferencias())
     setModalAberto('preferencias')
+  }
+
+  const confirmarEmail = async (e) => {
+    e.preventDefault()
+    setEmailError('')
+
+    const emailConta = (userInfo?.username || currentUser?.username || '').trim().toLowerCase()
+    const emailDigitado = emailConfirmacao.trim()
+
+    setVerificandoEmail(true)
+    try {
+      const { data } = await ValidacaoService.validarEmail(emailDigitado)
+      if (!data.valido) {
+        setEmailError('Informe um e-mail em um formato válido.')
+        return
+      }
+      if (emailDigitado.toLowerCase() !== emailConta) {
+        setEmailError('Esse e-mail não corresponde à sua conta.')
+        return
+      }
+      setEmailConfirmado(emailDigitado)
+      setSenhaStep('senha')
+    } catch (err) {
+      setEmailError(err?.response?.data?.message || err?.message || 'Não foi possível validar o e-mail agora.')
+    } finally {
+      setVerificandoEmail(false)
+    }
   }
 
   const salvarSenha = async (e) => {
@@ -109,6 +151,7 @@ function Perfil() {
     setSalvandoSenha(true)
     try {
       await UsuarioService.alterarSenha(currentUser.id, {
+        email: emailConfirmado,
         senhaAtual: formSenha.senhaAtual,
         senha: formSenha.novaSenha,
       })
@@ -442,10 +485,37 @@ function Perfil() {
           </div>
         </div>
 
-        {modalAberto === 'senha' && (
+        {modalAberto === 'senha' && senhaStep === 'email' && (
+          <div className="db-modal-overlay">
+            <form className="db-modal" onSubmit={confirmarEmail}>
+              <h3>Confirme seu e-mail</h3>
+              <p>Por segurança, confirme o e-mail da sua conta antes de trocar a senha.</p>
+              <div style={{ marginBottom: emailError ? 12 : 20 }}>
+                <label style={modalLabelStyle}>E-mail cadastrado</label>
+                <input
+                  type="email"
+                  style={modalInputStyle}
+                  value={emailConfirmacao}
+                  onChange={(e) => setEmailConfirmacao(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              {emailError && <p style={{ color: '#f25f5c', fontSize: 13, marginBottom: 12 }}>{emailError}</p>}
+              <div className="db-modal-buttons">
+                <button type="button" className="db-cancel-btn" onClick={fecharModal}>Cancelar</button>
+                <button type="submit" className="db-cancel-btn" style={modalPrimaryBtnStyle} disabled={verificandoEmail || !emailConfirmacao}>
+                  {verificandoEmail ? 'Verificando...' : 'Continuar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {modalAberto === 'senha' && senhaStep === 'senha' && (
           <div className="db-modal-overlay">
             <form className="db-modal" onSubmit={salvarSenha}>
               <h3>Alterar Senha</h3>
+              <p>E-mail confirmado: <strong style={{ color: '#4CC9F0' }}>{emailConfirmado}</strong></p>
               <div style={{ display: 'grid', gap: 12, marginBottom: senhaError || senhaSuccess ? 12 : 20 }}>
                 <div>
                   <label style={modalLabelStyle}>Senha atual</label>
@@ -479,7 +549,7 @@ function Perfil() {
               {senhaError && <p style={{ color: '#f25f5c', fontSize: 13, marginBottom: 12 }}>{senhaError}</p>}
               {senhaSuccess && <p style={{ color: '#4ade80', fontSize: 13, marginBottom: 12 }}>{senhaSuccess}</p>}
               <div className="db-modal-buttons">
-                <button type="button" className="db-cancel-btn" onClick={fecharModal}>Fechar</button>
+                <button type="button" className="db-cancel-btn" onClick={() => setSenhaStep('email')}>Voltar</button>
                 <button type="submit" className="db-cancel-btn" style={modalPrimaryBtnStyle} disabled={salvandoSenha}>
                   {salvandoSenha ? 'Salvando...' : 'Salvar'}
                 </button>

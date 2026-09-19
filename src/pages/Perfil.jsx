@@ -5,7 +5,6 @@ import TurmaServices from '../Services/TurmaServices'
 import UsuarioService from '../Services/UsuarioService'
 import ProfessorService from '../Services/ProfessorService'
 import PreferenciasService from '../Services/PreferenciasService'
-import ValidacaoService from '../Services/ValidacaoService'
 
 const THEMES = [
   { key: 'dark', label: 'Escuro' },
@@ -56,14 +55,12 @@ function Perfil() {
   const fileInputRef = React.useRef(null)
 
   const [modalAberto, setModalAberto] = useState(null) // 'senha' | 'notificacoes' | 'preferencias' | null
-  const [senhaStep, setSenhaStep] = useState('email') // 'email' | 'senha'
+  const [senhaStep, setSenhaStep] = useState('inicio') // 'inicio' | 'codigo'
 
-  const [emailConfirmacao, setEmailConfirmacao] = useState('')
-  const [emailConfirmado, setEmailConfirmado] = useState('')
-  const [emailError, setEmailError] = useState('')
-  const [verificandoEmail, setVerificandoEmail] = useState(false)
+  const [enviandoCodigo, setEnviandoCodigo] = useState(false)
+  const [envioError, setEnvioError] = useState('')
 
-  const [formSenha, setFormSenha] = useState({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+  const [formSenha, setFormSenha] = useState({ codigo: '', senhaAtual: '', novaSenha: '', confirmarSenha: '' })
   const [senhaError, setSenhaError] = useState('')
   const [senhaSuccess, setSenhaSuccess] = useState('')
   const [salvandoSenha, setSalvandoSenha] = useState(false)
@@ -73,21 +70,17 @@ function Perfil() {
 
   const fecharModal = () => {
     setModalAberto(null)
-    setSenhaStep('email')
-    setEmailConfirmacao('')
-    setEmailConfirmado('')
-    setEmailError('')
-    setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+    setSenhaStep('inicio')
+    setEnvioError('')
+    setFormSenha({ codigo: '', senhaAtual: '', novaSenha: '', confirmarSenha: '' })
     setSenhaError('')
     setSenhaSuccess('')
   }
 
   const abrirModalSenha = () => {
-    setSenhaStep('email')
-    setEmailConfirmacao('')
-    setEmailConfirmado('')
-    setEmailError('')
-    setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+    setSenhaStep('inicio')
+    setEnvioError('')
+    setFormSenha({ codigo: '', senhaAtual: '', novaSenha: '', confirmarSenha: '' })
     setSenhaError('')
     setSenhaSuccess('')
     setModalAberto('senha')
@@ -103,30 +96,16 @@ function Perfil() {
     setModalAberto('preferencias')
   }
 
-  const confirmarEmail = async (e) => {
-    e.preventDefault()
-    setEmailError('')
-
-    const emailConta = (userInfo?.username || currentUser?.username || '').trim().toLowerCase()
-    const emailDigitado = emailConfirmacao.trim()
-
-    setVerificandoEmail(true)
+  const enviarCodigo = async () => {
+    setEnvioError('')
+    setEnviandoCodigo(true)
     try {
-      const { data } = await ValidacaoService.validarEmail(emailDigitado)
-      if (!data.valido) {
-        setEmailError('Informe um e-mail em um formato válido.')
-        return
-      }
-      if (emailDigitado.toLowerCase() !== emailConta) {
-        setEmailError('Esse e-mail não corresponde à sua conta.')
-        return
-      }
-      setEmailConfirmado(emailDigitado)
-      setSenhaStep('senha')
+      await UsuarioService.solicitarCodigoSenha(currentUser.id)
+      setSenhaStep('codigo')
     } catch (err) {
-      setEmailError(err?.response?.data?.message || err?.message || 'Não foi possível validar o e-mail agora.')
+      setEnvioError(err?.response?.data?.message || err?.message || 'Não foi possível enviar o código agora.')
     } finally {
-      setVerificandoEmail(false)
+      setEnviandoCodigo(false)
     }
   }
 
@@ -135,6 +114,10 @@ function Perfil() {
     setSenhaError('')
     setSenhaSuccess('')
 
+    if (!formSenha.codigo.trim()) {
+      setSenhaError('Informe o código recebido por e-mail.')
+      return
+    }
     if (!formSenha.senhaAtual) {
       setSenhaError('Informe sua senha atual.')
       return
@@ -151,12 +134,12 @@ function Perfil() {
     setSalvandoSenha(true)
     try {
       await UsuarioService.alterarSenha(currentUser.id, {
-        email: emailConfirmado,
+        codigo: formSenha.codigo.trim(),
         senhaAtual: formSenha.senhaAtual,
         senha: formSenha.novaSenha,
       })
       setSenhaSuccess('Senha alterada com sucesso.')
-      setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+      setFormSenha({ codigo: '', senhaAtual: '', novaSenha: '', confirmarSenha: '' })
     } catch (err) {
       setSenhaError(err?.response?.data?.message || err?.message || 'Não foi possível alterar a senha.')
     } finally {
@@ -485,38 +468,53 @@ function Perfil() {
           </div>
         </div>
 
-        {modalAberto === 'senha' && senhaStep === 'email' && (
+        {modalAberto === 'senha' && senhaStep === 'inicio' && (
           <div className="db-modal-overlay">
-            <form className="db-modal" onSubmit={confirmarEmail}>
-              <h3>Confirme seu e-mail</h3>
-              <p>Por segurança, confirme o e-mail da sua conta antes de trocar a senha.</p>
-              <div style={{ marginBottom: emailError ? 12 : 20 }}>
-                <label style={modalLabelStyle}>E-mail cadastrado</label>
-                <input
-                  type="email"
-                  style={modalInputStyle}
-                  value={emailConfirmacao}
-                  onChange={(e) => setEmailConfirmacao(e.target.value)}
-                  autoFocus
-                />
-              </div>
-              {emailError && <p style={{ color: '#f25f5c', fontSize: 13, marginBottom: 12 }}>{emailError}</p>}
+            <div className="db-modal">
+              <h3>Alterar Senha</h3>
+              <p>
+                Vamos enviar um código de verificação para{' '}
+                <strong style={{ color: '#4CC9F0' }}>{userInfo?.username || currentUser?.username}</strong>.
+                Você vai precisar desse código para autorizar a troca de senha.
+              </p>
+              {envioError && <p style={{ color: '#f25f5c', fontSize: 13, marginBottom: 12 }}>{envioError}</p>}
               <div className="db-modal-buttons">
                 <button type="button" className="db-cancel-btn" onClick={fecharModal}>Cancelar</button>
-                <button type="submit" className="db-cancel-btn" style={modalPrimaryBtnStyle} disabled={verificandoEmail || !emailConfirmacao}>
-                  {verificandoEmail ? 'Verificando...' : 'Continuar'}
+                <button
+                  type="button"
+                  className="db-cancel-btn"
+                  style={modalPrimaryBtnStyle}
+                  onClick={enviarCodigo}
+                  disabled={enviandoCodigo}
+                >
+                  {enviandoCodigo ? 'Enviando...' : 'Enviar código'}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         )}
 
-        {modalAberto === 'senha' && senhaStep === 'senha' && (
+        {modalAberto === 'senha' && senhaStep === 'codigo' && (
           <div className="db-modal-overlay">
             <form className="db-modal" onSubmit={salvarSenha}>
               <h3>Alterar Senha</h3>
-              <p>E-mail confirmado: <strong style={{ color: '#4CC9F0' }}>{emailConfirmado}</strong></p>
+              <p>
+                Enviamos um código para <strong style={{ color: '#4CC9F0' }}>{userInfo?.username || currentUser?.username}</strong>.
+                Confira sua caixa de entrada (e o spam).
+              </p>
               <div style={{ display: 'grid', gap: 12, marginBottom: senhaError || senhaSuccess ? 12 : 20 }}>
+                <div>
+                  <label style={modalLabelStyle}>Código recebido por e-mail</label>
+                  <input
+                    type="text"
+                    style={modalInputStyle}
+                    value={formSenha.codigo}
+                    onChange={(e) => setFormSenha(f => ({ ...f, codigo: e.target.value }))}
+                    placeholder="000000"
+                    maxLength={6}
+                    autoFocus
+                  />
+                </div>
                 <div>
                   <label style={modalLabelStyle}>Senha atual</label>
                   <input
@@ -524,7 +522,6 @@ function Perfil() {
                     style={modalInputStyle}
                     value={formSenha.senhaAtual}
                     onChange={(e) => setFormSenha(f => ({ ...f, senhaAtual: e.target.value }))}
-                    autoFocus
                   />
                 </div>
                 <div>
@@ -546,10 +543,18 @@ function Perfil() {
                   />
                 </div>
               </div>
+              <button
+                type="button"
+                onClick={enviarCodigo}
+                disabled={enviandoCodigo}
+                style={{ background: 'none', border: 'none', color: '#4CC9F0', fontSize: 12, cursor: 'pointer', padding: 0, marginBottom: 12 }}
+              >
+                {enviandoCodigo ? 'Reenviando...' : 'Reenviar código'}
+              </button>
               {senhaError && <p style={{ color: '#f25f5c', fontSize: 13, marginBottom: 12 }}>{senhaError}</p>}
               {senhaSuccess && <p style={{ color: '#4ade80', fontSize: 13, marginBottom: 12 }}>{senhaSuccess}</p>}
               <div className="db-modal-buttons">
-                <button type="button" className="db-cancel-btn" onClick={() => setSenhaStep('email')}>Voltar</button>
+                <button type="button" className="db-cancel-btn" onClick={() => setSenhaStep('inicio')}>Voltar</button>
                 <button type="submit" className="db-cancel-btn" style={modalPrimaryBtnStyle} disabled={salvandoSenha}>
                   {salvandoSenha ? 'Salvando...' : 'Salvar'}
                 </button>

@@ -133,9 +133,13 @@ const reativar = (id) => {
 
 
 
+const solicitarCodigoSenha = (id) => {
+    return http.mainInstance.post(API_URL + `${id}/solicitar-codigo-senha`);
+};
+
 const alterarSenha = (id, data) => {
     return http.mainInstance.put(API_URL + `${id}/alterar-senha`, null, {
-        params: { email: data.email, senhaAtual: data.senhaAtual, newPassword: data.senha },
+        params: { codigo: data.codigo, senhaAtual: data.senhaAtual, newPassword: data.senha },
     });
 };
 
@@ -158,6 +162,7 @@ const UsuarioService = {
     update,
     inativar,
     reativar,
+    solicitarCodigoSenha,
     alterarSenha,
     findByNome,
 }

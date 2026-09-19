@@ -23,6 +23,8 @@ const encerrarChamada = (chamadaId) => http.mainInstance.put(`/professor/chamada
 const atualizarPresenca = (chamadaId, alunoRm, status) =>
   http.mainInstance.put(`/professor/chamadas/${chamadaId}/alunos/${alunoRm}`, { status })
 
+const reabrirChamada = (chamadaId) => http.mainInstance.put(`/professor/chamadas/${chamadaId}/reabrir`)
+
 const ProfessorService = {
   listarTurmas,
   buscarTurma,
@@ -35,6 +37,7 @@ const ProfessorService = {
   buscarChamada,
   encerrarChamada,
   atualizarPresenca,
+  reabrirChamada,
 }
 
 export default ProfessorService

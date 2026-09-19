@@ -130,14 +130,37 @@ function ProfessorChamada() {
     }
   }
 
-  const encerrar = async () => {
-    if (!chamada?.id || !window.confirm('Encerrar esta chamada?')) return
+  // Sincroniza os dois estados (chamada atual e chamada aberta na aba de
+  // recentes) quando os dois apontam para a mesma chamada.
+  const sincronizarChamada = (atualizada) => {
+    if (chamada?.id === atualizada.id) setChamada(atualizada)
+    if (chamadaRecenteSelecionada?.id === atualizada.id) setChamadaRecenteSelecionada(atualizada)
+  }
+
+  const encerrarChamadaAlvo = async (alvo) => {
+    if (!alvo?.id || !window.confirm('Encerrar esta chamada?')) return
     setSaving(true)
     setError('')
     try {
-      const response = await ProfessorService.encerrarChamada(chamada.id)
-      setChamada(response.data)
+      const response = await ProfessorService.encerrarChamada(alvo.id)
+      sincronizarChamada(response.data)
       setMessage('Chamada encerrada.')
+      await atualizarHistorico()
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const reabrirChamadaAlvo = async (alvo) => {
+    if (!alvo?.id) return
+    setSaving(true)
+    setError('')
+    try {
+      const response = await ProfessorService.reabrirChamada(alvo.id)
+      sincronizarChamada(response.data)
+      setMessage('Chamada reaberta para correção manual.')
       await atualizarHistorico()
     } catch (err) {
       setError(getErrorMessage(err))
@@ -192,10 +215,7 @@ function ProfessorChamada() {
                     <div className="db-card-section-title" style={{ marginBottom: 0 }}>
                       {chamada ? `Chamada gerada em ${formatDateTime(chamada.dataGeracao)}` : 'Nenhuma chamada ativa'}
                     </div>
-                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                      <button onClick={gerar} disabled={saving} style={buttonPrimary}>{saving ? 'Processando...' : 'Gerar chamada'}</button>
-                      {chamada?.status === 'ATIVA' && <button onClick={encerrar} disabled={saving} style={buttonSuccess}>Encerrar</button>}
-                    </div>
+                    <button onClick={gerar} disabled={saving} style={buttonPrimary}>{saving ? 'Processando...' : 'Gerar chamada'}</button>
                   </div>
                 </div>
 
@@ -203,6 +223,9 @@ function ProfessorChamada() {
                   <PainelChamada
                     chamada={chamada}
                     onMarcar={marcarPresenca}
+                    onEncerrar={() => encerrarChamadaAlvo(chamada)}
+                    onReabrir={() => reabrirChamadaAlvo(chamada)}
+                    saving={saving}
                   />
                 )}
               </>
@@ -232,6 +255,9 @@ function ProfessorChamada() {
                   <PainelChamada
                     chamada={chamadaRecenteSelecionada}
                     onMarcar={marcarPresencaRecente}
+                    onEncerrar={() => encerrarChamadaAlvo(chamadaRecenteSelecionada)}
+                    onReabrir={() => reabrirChamadaAlvo(chamadaRecenteSelecionada)}
+                    saving={saving}
                   />
                 )}
               </>
@@ -243,27 +269,46 @@ function ProfessorChamada() {
   )
 }
 
-function PainelChamada({ chamada, onMarcar }) {
+function PainelChamada({ chamada, onMarcar, onEncerrar, onReabrir, saving }) {
+  const podeEditar = chamada.status === 'ATIVA' || chamada.status === 'REABERTA'
+  const mostrarQrCode = chamada.status === 'ATIVA'
+
   return (
     <>
-      <div className="db-card" style={{ padding: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 22, alignItems: 'center' }}>
-        <div style={{ background: '#fff', borderRadius: 8, padding: 14, width: 'fit-content' }}>
-          <img src={ChamadaService.gerarQrCodeUrl(chamada.qrCodePayload || chamada.token)} alt="QR Code da chamada" style={{ width: 180, height: 180, display: 'block' }} />
-        </div>
+      <div className="db-card" style={{ padding: 24, display: 'grid', gridTemplateColumns: mostrarQrCode ? 'repeat(auto-fit,minmax(220px,1fr))' : '1fr', gap: 22, alignItems: 'center' }}>
+        {mostrarQrCode && (
+          <div style={{ background: '#fff', borderRadius: 8, padding: 14, width: 'fit-content' }}>
+            <img src={ChamadaService.gerarQrCodeUrl(chamada.qrCodePayload || chamada.token)} alt="QR Code da chamada" style={{ width: 180, height: 180, display: 'block' }} />
+          </div>
+        )}
         <div style={{ color: 'rgba(255,255,255,0.68)', fontSize: 13, display: 'grid', gap: 10 }}>
-          <div><strong style={{ color: '#fff' }}>Token:</strong> <span style={{ wordBreak: 'break-all' }}>{chamada.token}</span></div>
+          {mostrarQrCode && (
+            <div><strong style={{ color: '#fff' }}>Token:</strong> <span style={{ wordBreak: 'break-all' }}>{chamada.token}</span></div>
+          )}
           <div><strong style={{ color: '#fff' }}>Gerada em:</strong> {formatDateTime(chamada.dataGeracao)}</div>
           <div><strong style={{ color: '#fff' }}>Expira em:</strong> {formatDateTime(chamada.dataExpiracao)}</div>
           <div><strong style={{ color: '#fff' }}>Status:</strong> {chamada.status}</div>
           <div><strong style={{ color: '#4ade80' }}>{chamada.totalPresentes || 0}</strong> presentes | <strong style={{ color: '#f25f5c' }}>{chamada.totalFaltas || 0}</strong> faltas</div>
-          {chamada.status !== 'ATIVA' && (
-            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Chamada encerrada: a marcação manual fica bloqueada.</div>
+          {chamada.status === 'ENCERRADA' && (
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Chamada encerrada: reabra para corrigir os registros dos alunos.</div>
           )}
+          {chamada.status === 'REABERTA' && (
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Chamada reaberta apenas para correção manual — não aceita mais confirmação por QR Code.</div>
+          )}
+
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 4 }}>
+            {(chamada.status === 'ATIVA' || chamada.status === 'REABERTA') && (
+              <button onClick={onEncerrar} disabled={saving} style={buttonSuccess}>Encerrar</button>
+            )}
+            {chamada.status === 'ENCERRADA' && (
+              <button onClick={onReabrir} disabled={saving} style={buttonPrimary}>Reabrir para corrigir</button>
+            )}
+          </div>
         </div>
       </div>
       <TabelaChamada
         alunos={chamada.alunos || []}
-        podeEditar={chamada.status === 'ATIVA'}
+        podeEditar={podeEditar}
         onMarcar={onMarcar}
       />
     </>

@@ -55,12 +55,17 @@ function Perfil() {
   const fileInputRef = React.useRef(null)
 
   const [modalAberto, setModalAberto] = useState(null) // 'senha' | 'notificacoes' | 'preferencias' | null
-  const [senhaStep, setSenhaStep] = useState('inicio') // 'inicio' | 'codigo'
+  const [senhaStep, setSenhaStep] = useState('inicio') // 'inicio' | 'codigo' | 'senha'
 
   const [enviandoCodigo, setEnviandoCodigo] = useState(false)
   const [envioError, setEnvioError] = useState('')
 
-  const [formSenha, setFormSenha] = useState({ codigo: '', senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+  const [codigoDigitado, setCodigoDigitado] = useState('')
+  const [codigoConfirmado, setCodigoConfirmado] = useState('')
+  const [codigoError, setCodigoError] = useState('')
+  const [verificandoCodigo, setVerificandoCodigo] = useState(false)
+
+  const [formSenha, setFormSenha] = useState({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
   const [senhaError, setSenhaError] = useState('')
   const [senhaSuccess, setSenhaSuccess] = useState('')
   const [salvandoSenha, setSalvandoSenha] = useState(false)
@@ -72,7 +77,10 @@ function Perfil() {
     setModalAberto(null)
     setSenhaStep('inicio')
     setEnvioError('')
-    setFormSenha({ codigo: '', senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+    setCodigoDigitado('')
+    setCodigoConfirmado('')
+    setCodigoError('')
+    setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
     setSenhaError('')
     setSenhaSuccess('')
   }
@@ -80,7 +88,10 @@ function Perfil() {
   const abrirModalSenha = () => {
     setSenhaStep('inicio')
     setEnvioError('')
-    setFormSenha({ codigo: '', senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+    setCodigoDigitado('')
+    setCodigoConfirmado('')
+    setCodigoError('')
+    setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
     setSenhaError('')
     setSenhaSuccess('')
     setModalAberto('senha')
@@ -101,6 +112,8 @@ function Perfil() {
     setEnviandoCodigo(true)
     try {
       await UsuarioService.solicitarCodigoSenha(currentUser.id)
+      setCodigoDigitado('')
+      setCodigoError('')
       setSenhaStep('codigo')
     } catch (err) {
       setEnvioError(err?.response?.data?.message || err?.message || 'Não foi possível enviar o código agora.')
@@ -109,15 +122,32 @@ function Perfil() {
     }
   }
 
+  const verificarCodigo = async (e) => {
+    e.preventDefault()
+    setCodigoError('')
+
+    if (!codigoDigitado.trim()) {
+      setCodigoError('Informe o código recebido por e-mail.')
+      return
+    }
+
+    setVerificandoCodigo(true)
+    try {
+      await UsuarioService.verificarCodigoSenha(currentUser.id, codigoDigitado.trim())
+      setCodigoConfirmado(codigoDigitado.trim())
+      setSenhaStep('senha')
+    } catch (err) {
+      setCodigoError(err?.response?.data?.message || err?.message || 'Não foi possível validar o código agora.')
+    } finally {
+      setVerificandoCodigo(false)
+    }
+  }
+
   const salvarSenha = async (e) => {
     e.preventDefault()
     setSenhaError('')
     setSenhaSuccess('')
 
-    if (!formSenha.codigo.trim()) {
-      setSenhaError('Informe o código recebido por e-mail.')
-      return
-    }
     if (!formSenha.senhaAtual) {
       setSenhaError('Informe sua senha atual.')
       return
@@ -134,12 +164,12 @@ function Perfil() {
     setSalvandoSenha(true)
     try {
       await UsuarioService.alterarSenha(currentUser.id, {
-        codigo: formSenha.codigo.trim(),
+        codigo: codigoConfirmado,
         senhaAtual: formSenha.senhaAtual,
         senha: formSenha.novaSenha,
       })
       setSenhaSuccess('Senha alterada com sucesso.')
-      setFormSenha({ codigo: '', senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+      setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
     } catch (err) {
       setSenhaError(err?.response?.data?.message || err?.message || 'Não foi possível alterar a senha.')
     } finally {
@@ -496,25 +526,49 @@ function Perfil() {
 
         {modalAberto === 'senha' && senhaStep === 'codigo' && (
           <div className="db-modal-overlay">
-            <form className="db-modal" onSubmit={salvarSenha}>
-              <h3>Alterar Senha</h3>
+            <form className="db-modal" onSubmit={verificarCodigo}>
+              <h3>Confirme o código</h3>
               <p>
                 Enviamos um código para <strong style={{ color: '#4CC9F0' }}>{userInfo?.username || currentUser?.username}</strong>.
                 Confira sua caixa de entrada (e o spam).
               </p>
+              <div style={{ marginBottom: codigoError ? 12 : 20 }}>
+                <label style={modalLabelStyle}>Código recebido por e-mail</label>
+                <input
+                  type="text"
+                  style={modalInputStyle}
+                  value={codigoDigitado}
+                  onChange={(e) => setCodigoDigitado(e.target.value)}
+                  placeholder="000000"
+                  maxLength={6}
+                  autoFocus
+                />
+              </div>
+              <button
+                type="button"
+                onClick={enviarCodigo}
+                disabled={enviandoCodigo}
+                style={{ background: 'none', border: 'none', color: '#4CC9F0', fontSize: 12, cursor: 'pointer', padding: 0, marginBottom: 12 }}
+              >
+                {enviandoCodigo ? 'Reenviando...' : 'Reenviar código'}
+              </button>
+              {codigoError && <p style={{ color: '#f25f5c', fontSize: 13, marginBottom: 12 }}>{codigoError}</p>}
+              <div className="db-modal-buttons">
+                <button type="button" className="db-cancel-btn" onClick={() => setSenhaStep('inicio')}>Voltar</button>
+                <button type="submit" className="db-cancel-btn" style={modalPrimaryBtnStyle} disabled={verificandoCodigo}>
+                  {verificandoCodigo ? 'Verificando...' : 'Confirmar código'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {modalAberto === 'senha' && senhaStep === 'senha' && (
+          <div className="db-modal-overlay">
+            <form className="db-modal" onSubmit={salvarSenha}>
+              <h3>Alterar Senha</h3>
+              <p>Código confirmado. Agora informe sua senha atual e a nova senha.</p>
               <div style={{ display: 'grid', gap: 12, marginBottom: senhaError || senhaSuccess ? 12 : 20 }}>
-                <div>
-                  <label style={modalLabelStyle}>Código recebido por e-mail</label>
-                  <input
-                    type="text"
-                    style={modalInputStyle}
-                    value={formSenha.codigo}
-                    onChange={(e) => setFormSenha(f => ({ ...f, codigo: e.target.value }))}
-                    placeholder="000000"
-                    maxLength={6}
-                    autoFocus
-                  />
-                </div>
                 <div>
                   <label style={modalLabelStyle}>Senha atual</label>
                   <input
@@ -522,6 +576,7 @@ function Perfil() {
                     style={modalInputStyle}
                     value={formSenha.senhaAtual}
                     onChange={(e) => setFormSenha(f => ({ ...f, senhaAtual: e.target.value }))}
+                    autoFocus
                   />
                 </div>
                 <div>
@@ -543,18 +598,10 @@ function Perfil() {
                   />
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={enviarCodigo}
-                disabled={enviandoCodigo}
-                style={{ background: 'none', border: 'none', color: '#4CC9F0', fontSize: 12, cursor: 'pointer', padding: 0, marginBottom: 12 }}
-              >
-                {enviandoCodigo ? 'Reenviando...' : 'Reenviar código'}
-              </button>
               {senhaError && <p style={{ color: '#f25f5c', fontSize: 13, marginBottom: 12 }}>{senhaError}</p>}
               {senhaSuccess && <p style={{ color: '#4ade80', fontSize: 13, marginBottom: 12 }}>{senhaSuccess}</p>}
               <div className="db-modal-buttons">
-                <button type="button" className="db-cancel-btn" onClick={() => setSenhaStep('inicio')}>Voltar</button>
+                <button type="button" className="db-cancel-btn" onClick={() => setSenhaStep('codigo')}>Voltar</button>
                 <button type="submit" className="db-cancel-btn" style={modalPrimaryBtnStyle} disabled={salvandoSenha}>
                   {salvandoSenha ? 'Salvando...' : 'Salvar'}
                 </button>

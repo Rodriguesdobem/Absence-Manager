@@ -51,6 +51,36 @@ function ProfessorChamada() {
     carregar()
   }, [turmaId])
 
+  // Atualização automática: enquanto a chamada estiver ativa, busca o estado mais
+  // recente periodicamente para refletir confirmações feitas por outro dispositivo
+  // (ex.: aluno confirmando presença pelo QR Code) sem exigir recarregar a página.
+  useEffect(() => {
+    if (!chamada?.id || chamada.status !== 'ATIVA') return undefined
+
+    const intervalo = setInterval(async () => {
+      try {
+        const response = await ProfessorService.buscarChamada(chamada.id)
+        setChamada(prev => (prev && prev.id === response.data.id ? response.data : prev))
+      } catch (err) {
+        // Falha pontual de rede não deve interromper o polling; a próxima tentativa segue.
+      }
+    }, 5000)
+
+    return () => clearInterval(intervalo)
+  }, [chamada?.id, chamada?.status])
+
+  const marcarPresenca = async (alunoRm, status) => {
+    setError('')
+    try {
+      const response = await ProfessorService.atualizarPresenca(chamada.id, alunoRm, status)
+      setChamada(response.data)
+      const historico = await ProfessorService.listarChamadas(turmaId)
+      setChamadas(historico.data || [])
+    } catch (err) {
+      setError(getErrorMessage(err))
+    }
+  }
+
   const gerar = async () => {
     setSaving(true)
     setError('')
@@ -133,7 +163,11 @@ function ProfessorChamada() {
                     <div><strong style={{ color: '#4ade80' }}>{chamada.totalPresentes || 0}</strong> presentes | <strong style={{ color: '#f25f5c' }}>{chamada.totalFaltas || 0}</strong> faltas</div>
                   </div>
                 </div>
-                <TabelaChamada alunos={chamada.alunos || []} />
+                <TabelaChamada
+                  alunos={chamada.alunos || []}
+                  podeEditar={chamada.status === 'ATIVA'}
+                  onMarcar={marcarPresenca}
+                />
               </>
             )}
 
@@ -152,12 +186,12 @@ function ProfessorChamada() {
   )
 }
 
-function TabelaChamada({ alunos }) {
+function TabelaChamada({ alunos, podeEditar, onMarcar }) {
   return (
     <div className="db-card" style={{ overflow: 'auto' }}>
       <div className="db-card-section-title" style={{ padding: '20px 24px 0' }}>Presentes e ausentes</div>
-      <table style={{ width: '100%', minWidth: 680, borderCollapse: 'collapse' }}>
-        <thead><tr>{['RM', 'Nome', 'Email', 'Status', 'Confirmado em'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
+      <table style={{ width: '100%', minWidth: 760, borderCollapse: 'collapse' }}>
+        <thead><tr>{['RM', 'Nome', 'Email', 'Status', 'Confirmado em', 'Chamada manual'].map(h => <th key={h} style={th}>{h}</th>)}</tr></thead>
         <tbody>{alunos.map(aluno => (
           <tr key={aluno.rm} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
             <td style={td}>{aluno.rm}</td>
@@ -165,6 +199,24 @@ function TabelaChamada({ alunos }) {
             <td style={td}>{aluno.email || '-'}</td>
             <td style={{ ...td, color: aluno.statusPresenca === 'PRESENTE' ? '#4ade80' : '#f25f5c', fontWeight: 900 }}>{aluno.statusPresenca}</td>
             <td style={td}>{formatDateTime(aluno.dataConfirmacao)}</td>
+            <td style={td}>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button
+                  disabled={!podeEditar || aluno.statusPresenca === 'PRESENTE'}
+                  onClick={() => onMarcar(aluno.rm, 'PRESENTE')}
+                  style={{ ...botaoManual, opacity: !podeEditar || aluno.statusPresenca === 'PRESENTE' ? 0.4 : 1, borderColor: 'rgba(74,222,128,0.35)', color: '#4ade80' }}
+                >
+                  Presente
+                </button>
+                <button
+                  disabled={!podeEditar || aluno.statusPresenca === 'FALTA'}
+                  onClick={() => onMarcar(aluno.rm, 'FALTA')}
+                  style={{ ...botaoManual, opacity: !podeEditar || aluno.statusPresenca === 'FALTA' ? 0.4 : 1, borderColor: 'rgba(242,95,92,0.35)', color: '#f25f5c' }}
+                >
+                  Falta
+                </button>
+              </div>
+            </td>
           </tr>
         ))}</tbody>
       </table>
@@ -178,5 +230,6 @@ const buttonSuccess = { borderRadius: 8, border: '1px solid rgba(74,222,128,0.35
 const listButton = { width: '100%', textAlign: 'left', borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', color: '#fff', padding: 14, marginBottom: 10, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', fontFamily: 'Plus Jakarta Sans,sans-serif' }
 const th = { padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#4CC9F0', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.07)' }
 const td = { padding: '12px 16px', fontSize: 13, color: 'rgba(255,255,255,0.62)' }
+const botaoManual = { borderRadius: 6, border: '1px solid', background: 'transparent', padding: '6px 10px', fontWeight: 800, fontSize: 12, cursor: 'pointer' }
 
 export default ProfessorChamada

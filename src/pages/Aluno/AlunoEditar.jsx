@@ -482,11 +482,13 @@ function AlunoEditar() {
                     required
                   >
                     <option value="">{loadingTurmas ? "Carregando turmas..." : "Selecione a turma"}</option>
-                    {turmas.map((turma) => (
-                      <option key={turma.id} value={turma.id}>
-                        {turma.nome}
-                      </option>
-                    ))}
+                    {turmas
+                      .filter((turma) => turma.statusTurma !== "INATIVA" || String(turma.id) === String(form.turmaId))
+                      .map((turma) => (
+                        <option key={turma.id} value={turma.id}>
+                          {turma.nome}{turma.statusTurma === "INATIVA" ? " (inativa - turma atual)" : ""}
+                        </option>
+                      ))}
                   </select>
                 </div>
 

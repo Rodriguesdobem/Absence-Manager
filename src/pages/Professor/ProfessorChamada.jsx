@@ -12,6 +12,27 @@ function formatDateTime(value) {
   return value ? new Date(value).toLocaleString('pt-BR') : '-'
 }
 
+// Mantém a chamada aberta sincronizada enquanto estiver ATIVA, refletindo
+// confirmações feitas por outro dispositivo (ex.: aluno lendo o QR Code)
+// sem exigir que o professor recarregue a página.
+function useAtualizacaoAutomatica(chamada, setChamada) {
+  useEffect(() => {
+    if (!chamada?.id || chamada.status !== 'ATIVA') return undefined
+
+    const intervalo = setInterval(async () => {
+      try {
+        const response = await ProfessorService.buscarChamada(chamada.id)
+        setChamada(prev => (prev && prev.id === response.data.id ? response.data : prev))
+      } catch (err) {
+        // Falha pontual de rede não deve interromper o polling; a próxima tentativa segue.
+      }
+    }, 5000)
+
+    return () => clearInterval(intervalo)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chamada?.id, chamada?.status])
+}
+
 function ProfessorChamada() {
   const navigate = useNavigate()
   const { turmaId } = useParams()
@@ -19,6 +40,8 @@ function ProfessorChamada() {
   const [turma, setTurma] = useState(null)
   const [chamadas, setChamadas] = useState([])
   const [chamada, setChamada] = useState(null)
+  const [chamadaRecenteSelecionada, setChamadaRecenteSelecionada] = useState(null)
+  const [aba, setAba] = useState('atual')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -49,36 +72,46 @@ function ProfessorChamada() {
 
   useEffect(() => {
     carregar()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turmaId])
 
-  // Atualização automática: enquanto a chamada estiver ativa, busca o estado mais
-  // recente periodicamente para refletir confirmações feitas por outro dispositivo
-  // (ex.: aluno confirmando presença pelo QR Code) sem exigir recarregar a página.
-  useEffect(() => {
-    if (!chamada?.id || chamada.status !== 'ATIVA') return undefined
+  useAtualizacaoAutomatica(chamada, setChamada)
+  useAtualizacaoAutomatica(chamadaRecenteSelecionada, setChamadaRecenteSelecionada)
 
-    const intervalo = setInterval(async () => {
-      try {
-        const response = await ProfessorService.buscarChamada(chamada.id)
-        setChamada(prev => (prev && prev.id === response.data.id ? response.data : prev))
-      } catch (err) {
-        // Falha pontual de rede não deve interromper o polling; a próxima tentativa segue.
-      }
-    }, 5000)
-
-    return () => clearInterval(intervalo)
-  }, [chamada?.id, chamada?.status])
+  const atualizarHistorico = async () => {
+    const historico = await ProfessorService.listarChamadas(turmaId)
+    setChamadas(historico.data || [])
+    return historico.data || []
+  }
 
   const marcarPresenca = async (alunoRm, status) => {
     setError('')
     try {
       const response = await ProfessorService.atualizarPresenca(chamada.id, alunoRm, status)
       setChamada(response.data)
-      const historico = await ProfessorService.listarChamadas(turmaId)
-      setChamadas(historico.data || [])
+      await atualizarHistorico()
     } catch (err) {
       setError(getErrorMessage(err))
     }
+  }
+
+  const marcarPresencaRecente = async (alunoRm, status) => {
+    setError('')
+    try {
+      const response = await ProfessorService.atualizarPresenca(chamadaRecenteSelecionada.id, alunoRm, status)
+      setChamadaRecenteSelecionada(response.data)
+      await atualizarHistorico()
+      // Mantém a chamada atual em dia caso seja a mesma que está sendo editada na aba de recentes.
+      if (chamada?.id === response.data.id) {
+        setChamada(response.data)
+      }
+    } catch (err) {
+      setError(getErrorMessage(err))
+    }
+  }
+
+  const abrirChamadaRecente = (item) => {
+    setChamadaRecenteSelecionada(item)
   }
 
   const gerar = async () => {
@@ -89,8 +122,7 @@ function ProfessorChamada() {
       const response = await ProfessorService.criarChamada(turmaId)
       setChamada(response.data)
       setMessage('Chamada criada com sucesso.')
-      const historico = await ProfessorService.listarChamadas(turmaId)
-      setChamadas(historico.data || [])
+      await atualizarHistorico()
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -106,8 +138,7 @@ function ProfessorChamada() {
       const response = await ProfessorService.encerrarChamada(chamada.id)
       setChamada(response.data)
       setMessage('Chamada encerrada.')
-      const historico = await ProfessorService.listarChamadas(turmaId)
-      setChamadas(historico.data || [])
+      await atualizarHistorico()
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
@@ -139,50 +170,103 @@ function ProfessorChamada() {
                   <div className="db-card-section-title">{turma?.nome || 'Turma'}</div>
                   <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 13 }}>{turma?.instrumento || '-'} - {turma?.periodo || '-'}</div>
                 </div>
-                <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                  <button onClick={gerar} disabled={saving} style={buttonPrimary}>{saving ? 'Processando...' : 'Gerar chamada'}</button>
-                  {chamada?.status === 'ATIVA' && <button onClick={encerrar} disabled={saving} style={buttonSuccess}>Encerrar</button>}
-                  <button onClick={carregar} style={buttonSecondary}>Atualizar</button>
-                </div>
+                <button onClick={carregar} style={buttonSecondary}>Atualizar</button>
               </div>
               {error && <div style={{ color: '#f25f5c', marginTop: 14, fontWeight: 800 }}>{error}</div>}
               {message && <div style={{ color: '#4ade80', marginTop: 14, fontWeight: 800 }}>{message}</div>}
             </div>
 
-            {chamada && (
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button onClick={() => setAba('atual')} style={aba === 'atual' ? abaAtivaStyle : abaInativaStyle}>
+                Chamada Atual
+              </button>
+              <button onClick={() => setAba('recentes')} style={aba === 'recentes' ? abaAtivaStyle : abaInativaStyle}>
+                Chamadas Recentes
+              </button>
+            </div>
+
+            {aba === 'atual' && (
               <>
-                <div className="db-card" style={{ padding: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 22, alignItems: 'center' }}>
-                  <div style={{ background: '#fff', borderRadius: 8, padding: 14, width: 'fit-content' }}>
-                    <img src={ChamadaService.gerarQrCodeUrl(chamada.qrCodePayload || chamada.token)} alt="QR Code da chamada" style={{ width: 180, height: 180, display: 'block' }} />
-                  </div>
-                  <div style={{ color: 'rgba(255,255,255,0.68)', fontSize: 13, display: 'grid', gap: 10 }}>
-                    <div><strong style={{ color: '#fff' }}>Token:</strong> <span style={{ wordBreak: 'break-all' }}>{chamada.token}</span></div>
-                    <div><strong style={{ color: '#fff' }}>Gerada em:</strong> {formatDateTime(chamada.dataGeracao)}</div>
-                    <div><strong style={{ color: '#fff' }}>Expira em:</strong> {formatDateTime(chamada.dataExpiracao)}</div>
-                    <div><strong style={{ color: '#fff' }}>Status:</strong> {chamada.status}</div>
-                    <div><strong style={{ color: '#4ade80' }}>{chamada.totalPresentes || 0}</strong> presentes | <strong style={{ color: '#f25f5c' }}>{chamada.totalFaltas || 0}</strong> faltas</div>
+                <div className="db-card" style={{ padding: 24 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <div className="db-card-section-title" style={{ marginBottom: 0 }}>
+                      {chamada ? `Chamada gerada em ${formatDateTime(chamada.dataGeracao)}` : 'Nenhuma chamada ativa'}
+                    </div>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      <button onClick={gerar} disabled={saving} style={buttonPrimary}>{saving ? 'Processando...' : 'Gerar chamada'}</button>
+                      {chamada?.status === 'ATIVA' && <button onClick={encerrar} disabled={saving} style={buttonSuccess}>Encerrar</button>}
+                    </div>
                   </div>
                 </div>
-                <TabelaChamada
-                  alunos={chamada.alunos || []}
-                  podeEditar={chamada.status === 'ATIVA'}
-                  onMarcar={marcarPresenca}
-                />
+
+                {chamada && (
+                  <PainelChamada
+                    chamada={chamada}
+                    onMarcar={marcarPresenca}
+                  />
+                )}
               </>
             )}
 
-            <div className="db-card" style={{ padding: 24 }}>
-              <div className="db-card-section-title" style={{ marginBottom: 12 }}>Chamadas criadas</div>
-              {chamadas.length > 0 ? chamadas.map(item => (
-                <button key={item.id} onClick={() => setChamada(item)} style={listButton}>
-                  <strong>{formatDateTime(item.dataGeracao)}</strong><span>{item.status} | {item.totalPresentes || 0} presentes | {item.totalFaltas || 0} faltas</span>
-                </button>
-              )) : <div className="db-updates-empty" style={{ padding: 28 }}>Nenhuma chamada criada.</div>}
-            </div>
+            {aba === 'recentes' && (
+              <>
+                <div className="db-card" style={{ padding: 24 }}>
+                  <div className="db-card-section-title" style={{ marginBottom: 12 }}>Chamadas recentes</div>
+                  {chamadas.length > 0 ? chamadas.map(item => (
+                    <button
+                      key={item.id}
+                      onClick={() => abrirChamadaRecente(item)}
+                      style={{
+                        ...listButton,
+                        border: chamadaRecenteSelecionada?.id === item.id ? '1px solid #4CC9F0' : listButton.border,
+                        background: chamadaRecenteSelecionada?.id === item.id ? 'rgba(76,201,240,0.1)' : listButton.background,
+                      }}
+                    >
+                      <strong>{formatDateTime(item.dataGeracao)}</strong>
+                      <span>{item.status} | {item.totalPresentes || 0} presentes | {item.totalFaltas || 0} faltas</span>
+                    </button>
+                  )) : <div className="db-updates-empty" style={{ padding: 28 }}>Nenhuma chamada criada.</div>}
+                </div>
+
+                {chamadaRecenteSelecionada && (
+                  <PainelChamada
+                    chamada={chamadaRecenteSelecionada}
+                    onMarcar={marcarPresencaRecente}
+                  />
+                )}
+              </>
+            )}
           </div>
         )}
       </main>
     </div>
+  )
+}
+
+function PainelChamada({ chamada, onMarcar }) {
+  return (
+    <>
+      <div className="db-card" style={{ padding: 24, display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: 22, alignItems: 'center' }}>
+        <div style={{ background: '#fff', borderRadius: 8, padding: 14, width: 'fit-content' }}>
+          <img src={ChamadaService.gerarQrCodeUrl(chamada.qrCodePayload || chamada.token)} alt="QR Code da chamada" style={{ width: 180, height: 180, display: 'block' }} />
+        </div>
+        <div style={{ color: 'rgba(255,255,255,0.68)', fontSize: 13, display: 'grid', gap: 10 }}>
+          <div><strong style={{ color: '#fff' }}>Token:</strong> <span style={{ wordBreak: 'break-all' }}>{chamada.token}</span></div>
+          <div><strong style={{ color: '#fff' }}>Gerada em:</strong> {formatDateTime(chamada.dataGeracao)}</div>
+          <div><strong style={{ color: '#fff' }}>Expira em:</strong> {formatDateTime(chamada.dataExpiracao)}</div>
+          <div><strong style={{ color: '#fff' }}>Status:</strong> {chamada.status}</div>
+          <div><strong style={{ color: '#4ade80' }}>{chamada.totalPresentes || 0}</strong> presentes | <strong style={{ color: '#f25f5c' }}>{chamada.totalFaltas || 0}</strong> faltas</div>
+          {chamada.status !== 'ATIVA' && (
+            <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>Chamada encerrada: a marcação manual fica bloqueada.</div>
+          )}
+        </div>
+      </div>
+      <TabelaChamada
+        alunos={chamada.alunos || []}
+        podeEditar={chamada.status === 'ATIVA'}
+        onMarcar={onMarcar}
+      />
+    </>
   )
 }
 
@@ -231,5 +315,7 @@ const listButton = { width: '100%', textAlign: 'left', borderRadius: 8, border: 
 const th = { padding: '12px 16px', textAlign: 'left', fontSize: 11, fontWeight: 800, color: '#4CC9F0', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.07)' }
 const td = { padding: '12px 16px', fontSize: 13, color: 'rgba(255,255,255,0.62)' }
 const botaoManual = { borderRadius: 6, border: '1px solid', background: 'transparent', padding: '6px 10px', fontWeight: 800, fontSize: 12, cursor: 'pointer' }
+const abaAtivaStyle = { borderRadius: 8, border: '1px solid #4CC9F0', background: 'rgba(76,201,240,0.12)', color: '#4CC9F0', padding: '10px 16px', fontWeight: 800, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans,sans-serif' }
+const abaInativaStyle = { borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', padding: '10px 16px', fontWeight: 800, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans,sans-serif' }
 
 export default ProfessorChamada

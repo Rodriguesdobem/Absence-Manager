@@ -4,6 +4,7 @@ import SharedNav from '../common/SharedNav'
 import TurmaServices from '../Services/TurmaServices'
 import TurmaAlunoServices from '../Services/TurmaAlunoServices'
 import ChamadaServices from '../Services/ChamadaServices'
+import PreferenciasService from '../Services/PreferenciasService'
 
 function getErrorMessage(error) {
   const data = error?.response?.data
@@ -143,7 +144,9 @@ function DetalhesTurma() {
 
   const confirmarChamada = async () => {
     if (!chamada?.id) return
-    const deveConfirmar = window.confirm('Confirmar e encerrar esta chamada? Alunos sem confirmacao continuarao como FALTA.')
+    const precisaConfirmar = PreferenciasService.obterPreferencias().confirmarAntesDeEncerrarChamada
+    const deveConfirmar = !precisaConfirmar
+      || window.confirm('Confirmar e encerrar esta chamada? Alunos sem confirmacao continuarao como FALTA.')
     if (!deveConfirmar) return
 
     setLoadingChamada(true)

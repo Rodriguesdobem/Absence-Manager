@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import SharedNav from '../../common/SharedNav'
 import ProfessorService from '../../Services/ProfessorService'
 import ChamadaService from '../../Services/ChamadaService'
+import PreferenciasService from '../../Services/PreferenciasService'
 
 function getErrorMessage(error) {
   return error?.response?.data?.message || error?.message || 'Erro ao carregar chamada.'
@@ -14,15 +15,22 @@ function formatDateTime(value) {
 
 // Mantém a chamada aberta sincronizada enquanto estiver ATIVA, refletindo
 // confirmações feitas por outro dispositivo (ex.: aluno lendo o QR Code)
-// sem exigir que o professor recarregue a página.
-function useAtualizacaoAutomatica(chamada, setChamada) {
+// sem exigir que o professor recarregue a página. Avisa quando o número de
+// presentes aumenta, respeitando a preferência de notificações do usuário.
+function useAtualizacaoAutomatica(chamada, setChamada, onNovaPresenca) {
   useEffect(() => {
     if (!chamada?.id || chamada.status !== 'ATIVA') return undefined
 
     const intervalo = setInterval(async () => {
       try {
         const response = await ProfessorService.buscarChamada(chamada.id)
-        setChamada(prev => (prev && prev.id === response.data.id ? response.data : prev))
+        setChamada(prev => {
+          if (!prev || prev.id !== response.data.id) return prev
+          if (onNovaPresenca && Number(response.data.totalPresentes) > Number(prev.totalPresentes || 0)) {
+            onNovaPresenca(response.data)
+          }
+          return response.data
+        })
       } catch (err) {
         // Falha pontual de rede não deve interromper o polling; a próxima tentativa segue.
       }
@@ -46,6 +54,19 @@ function ProfessorChamada() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
+  const [toast, setToast] = useState('')
+
+  useEffect(() => {
+    if (!toast) return undefined
+    const timeout = setTimeout(() => setToast(''), 6000)
+    return () => clearTimeout(timeout)
+  }, [toast])
+
+  const notificarNovaPresenca = (chamadaAtualizada) => {
+    if (PreferenciasService.obterNotificacoes().notificarPresencaConfirmada) {
+      setToast(`Novo aluno confirmou presença nesta chamada (${chamadaAtualizada.totalPresentes} presentes agora).`)
+    }
+  }
 
   const carregar = async () => {
     setLoading(true)
@@ -75,8 +96,8 @@ function ProfessorChamada() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [turmaId])
 
-  useAtualizacaoAutomatica(chamada, setChamada)
-  useAtualizacaoAutomatica(chamadaRecenteSelecionada, setChamadaRecenteSelecionada)
+  useAtualizacaoAutomatica(chamada, setChamada, notificarNovaPresenca)
+  useAtualizacaoAutomatica(chamadaRecenteSelecionada, setChamadaRecenteSelecionada, notificarNovaPresenca)
 
   const atualizarHistorico = async () => {
     const historico = await ProfessorService.listarChamadas(turmaId)
@@ -138,7 +159,9 @@ function ProfessorChamada() {
   }
 
   const encerrarChamadaAlvo = async (alvo) => {
-    if (!alvo?.id || !window.confirm('Encerrar esta chamada?')) return
+    if (!alvo?.id) return
+    const precisaConfirmar = PreferenciasService.obterPreferencias().confirmarAntesDeEncerrarChamada
+    if (precisaConfirmar && !window.confirm('Encerrar esta chamada?')) return
     setSaving(true)
     setError('')
     try {
@@ -174,6 +197,12 @@ function ProfessorChamada() {
       <SharedNav activeItem="prof-chamada" />
       <main className="db-main">
         <div className="db-page-title">Chamada / <span style={{ color: '#4CC9F0' }}>QRCode</span></div>
+        {toast && (
+          <div style={toastStyle}>
+            {toast}
+            <button onClick={() => setToast('')} style={toastCloseStyle} aria-label="Fechar aviso">×</button>
+          </div>
+        )}
         {loading ? (
           <div className="db-card" style={{ padding: 24 }}>Carregando...</div>
         ) : !turmaId ? (
@@ -362,5 +391,7 @@ const td = { padding: '12px 16px', fontSize: 13, color: 'rgba(255,255,255,0.62)'
 const botaoManual = { borderRadius: 6, border: '1px solid', background: 'transparent', padding: '6px 10px', fontWeight: 800, fontSize: 12, cursor: 'pointer' }
 const abaAtivaStyle = { borderRadius: 8, border: '1px solid #4CC9F0', background: 'rgba(76,201,240,0.12)', color: '#4CC9F0', padding: '10px 16px', fontWeight: 800, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans,sans-serif' }
 const abaInativaStyle = { borderRadius: 8, border: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)', color: 'rgba(255,255,255,0.6)', padding: '10px 16px', fontWeight: 800, cursor: 'pointer', fontFamily: 'Plus Jakarta Sans,sans-serif' }
+const toastStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, borderRadius: 10, border: '1px solid rgba(76,201,240,0.35)', background: 'rgba(76,201,240,0.12)', color: '#4CC9F0', padding: '12px 16px', fontWeight: 700, fontSize: 13, marginBottom: 16, position: 'relative', zIndex: 1 }
+const toastCloseStyle = { background: 'none', border: 'none', color: '#4CC9F0', fontSize: 18, cursor: 'pointer', lineHeight: 1, padding: 0 }
 
 export default ProfessorChamada

@@ -4,6 +4,7 @@ import AlunoServices from '../Services/AlunoServices'
 import TurmaServices from '../Services/TurmaServices'
 import UsuarioService from '../Services/UsuarioService'
 import ProfessorService from '../Services/ProfessorService'
+import PreferenciasService from '../Services/PreferenciasService'
 
 const THEMES = [
   { key: 'dark', label: 'Escuro' },
@@ -52,6 +53,83 @@ function Perfil() {
   const [fotoFile, setFotoFile] = useState(null)
   const [fotoPreviewUrl, setFotoPreviewUrl] = useState(() => getFotoSrc(currentUser))
   const fileInputRef = React.useRef(null)
+
+  const [modalAberto, setModalAberto] = useState(null) // 'senha' | 'notificacoes' | 'preferencias' | null
+
+  const [formSenha, setFormSenha] = useState({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+  const [senhaError, setSenhaError] = useState('')
+  const [senhaSuccess, setSenhaSuccess] = useState('')
+  const [salvandoSenha, setSalvandoSenha] = useState(false)
+
+  const [notificacoes, setNotificacoes] = useState(() => PreferenciasService.obterNotificacoes())
+  const [preferencias, setPreferencias] = useState(() => PreferenciasService.obterPreferencias())
+
+  const fecharModal = () => {
+    setModalAberto(null)
+    setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+    setSenhaError('')
+    setSenhaSuccess('')
+  }
+
+  const abrirModalSenha = () => {
+    setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+    setSenhaError('')
+    setSenhaSuccess('')
+    setModalAberto('senha')
+  }
+
+  const abrirModalNotificacoes = () => {
+    setNotificacoes(PreferenciasService.obterNotificacoes())
+    setModalAberto('notificacoes')
+  }
+
+  const abrirModalPreferencias = () => {
+    setPreferencias(PreferenciasService.obterPreferencias())
+    setModalAberto('preferencias')
+  }
+
+  const salvarSenha = async (e) => {
+    e.preventDefault()
+    setSenhaError('')
+    setSenhaSuccess('')
+
+    if (!formSenha.senhaAtual) {
+      setSenhaError('Informe sua senha atual.')
+      return
+    }
+    if (formSenha.novaSenha.length < 6) {
+      setSenhaError('A nova senha deve ter ao menos 6 caracteres.')
+      return
+    }
+    if (formSenha.novaSenha !== formSenha.confirmarSenha) {
+      setSenhaError('A confirmação não é igual à nova senha.')
+      return
+    }
+
+    setSalvandoSenha(true)
+    try {
+      await UsuarioService.alterarSenha(currentUser.id, {
+        senhaAtual: formSenha.senhaAtual,
+        senha: formSenha.novaSenha,
+      })
+      setSenhaSuccess('Senha alterada com sucesso.')
+      setFormSenha({ senhaAtual: '', novaSenha: '', confirmarSenha: '' })
+    } catch (err) {
+      setSenhaError(err?.response?.data?.message || err?.message || 'Não foi possível alterar a senha.')
+    } finally {
+      setSalvandoSenha(false)
+    }
+  }
+
+  const salvarNotificacoes = () => {
+    PreferenciasService.salvarNotificacoes(notificacoes)
+    fecharModal()
+  }
+
+  const salvarPreferencias = () => {
+    PreferenciasService.salvarPreferencias(preferencias)
+    fecharModal()
+  }
 
   useEffect(() => {
     if (!fotoFile) {
@@ -286,14 +364,14 @@ function Perfil() {
               />
             </div>
 
-            <button className="pf-config-btn">
+            <button className="pf-config-btn" onClick={abrirModalSenha}>
               <span className="pf-config-btn-left">
                 <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 Alterar Senha
               </span>
               <span className="pf-config-arrow">&gt;</span>
             </button>
-            <button className="pf-config-btn">
+            <button className="pf-config-btn" onClick={abrirModalNotificacoes}>
               <span className="pf-config-btn-left">
                 <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
                 Notificacoes
@@ -324,7 +402,7 @@ function Perfil() {
               </div>
             </div>
 
-            <button className="pf-config-btn">
+            <button className="pf-config-btn" onClick={abrirModalPreferencias}>
               <span className="pf-config-btn-left">
                 <svg viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" fill="none"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                 Preferencias
@@ -363,9 +441,135 @@ function Perfil() {
             )}
           </div>
         </div>
+
+        {modalAberto === 'senha' && (
+          <div className="db-modal-overlay">
+            <form className="db-modal" onSubmit={salvarSenha}>
+              <h3>Alterar Senha</h3>
+              <div style={{ display: 'grid', gap: 12, marginBottom: senhaError || senhaSuccess ? 12 : 20 }}>
+                <div>
+                  <label style={modalLabelStyle}>Senha atual</label>
+                  <input
+                    type="password"
+                    style={modalInputStyle}
+                    value={formSenha.senhaAtual}
+                    onChange={(e) => setFormSenha(f => ({ ...f, senhaAtual: e.target.value }))}
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label style={modalLabelStyle}>Nova senha</label>
+                  <input
+                    type="password"
+                    style={modalInputStyle}
+                    value={formSenha.novaSenha}
+                    onChange={(e) => setFormSenha(f => ({ ...f, novaSenha: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <label style={modalLabelStyle}>Confirmar nova senha</label>
+                  <input
+                    type="password"
+                    style={modalInputStyle}
+                    value={formSenha.confirmarSenha}
+                    onChange={(e) => setFormSenha(f => ({ ...f, confirmarSenha: e.target.value }))}
+                  />
+                </div>
+              </div>
+              {senhaError && <p style={{ color: '#f25f5c', fontSize: 13, marginBottom: 12 }}>{senhaError}</p>}
+              {senhaSuccess && <p style={{ color: '#4ade80', fontSize: 13, marginBottom: 12 }}>{senhaSuccess}</p>}
+              <div className="db-modal-buttons">
+                <button type="button" className="db-cancel-btn" onClick={fecharModal}>Fechar</button>
+                <button type="submit" className="db-cancel-btn" style={modalPrimaryBtnStyle} disabled={salvandoSenha}>
+                  {salvandoSenha ? 'Salvando...' : 'Salvar'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {modalAberto === 'notificacoes' && (
+          <div className="db-modal-overlay">
+            <div className="db-modal">
+              <h3>Notificações</h3>
+              <p style={{ marginBottom: 16 }}>Escolha o que você quer ser avisado dentro do sistema.</p>
+              <label style={modalCheckboxRowStyle}>
+                <input
+                  type="checkbox"
+                  checked={notificacoes.notificarPresencaConfirmada}
+                  onChange={(e) => setNotificacoes(p => ({ ...p, notificarPresencaConfirmada: e.target.checked }))}
+                />
+                <span>Avisar quando um aluno confirmar presença numa chamada ativa (tela de Chamada / QRCode)</span>
+              </label>
+              <div className="db-modal-buttons" style={{ marginTop: 20 }}>
+                <button className="db-cancel-btn" onClick={fecharModal}>Cancelar</button>
+                <button className="db-cancel-btn" style={modalPrimaryBtnStyle} onClick={salvarNotificacoes}>Salvar</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {modalAberto === 'preferencias' && (
+          <div className="db-modal-overlay">
+            <div className="db-modal">
+              <h3>Preferências</h3>
+              <p style={{ marginBottom: 16 }}>Ajustes de comportamento do sistema.</p>
+              <label style={modalCheckboxRowStyle}>
+                <input
+                  type="checkbox"
+                  checked={preferencias.confirmarAntesDeEncerrarChamada}
+                  onChange={(e) => setPreferencias(p => ({ ...p, confirmarAntesDeEncerrarChamada: e.target.checked }))}
+                />
+                <span>Pedir confirmação antes de encerrar uma chamada</span>
+              </label>
+              <div className="db-modal-buttons" style={{ marginTop: 20 }}>
+                <button className="db-cancel-btn" onClick={fecharModal}>Cancelar</button>
+                <button className="db-cancel-btn" style={modalPrimaryBtnStyle} onClick={salvarPreferencias}>Salvar</button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )
+}
+
+const modalLabelStyle = {
+  display: 'block',
+  fontSize: 11,
+  fontWeight: 700,
+  color: 'rgba(255,255,255,0.4)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.06em',
+  marginBottom: 6,
+}
+
+const modalInputStyle = {
+  width: '100%',
+  background: '#111118',
+  border: '1px solid rgba(255,255,255,0.08)',
+  borderRadius: 8,
+  padding: '10px 12px',
+  fontSize: 14,
+  color: '#fff',
+  fontFamily: 'Plus Jakarta Sans,sans-serif',
+  outline: 'none',
+  boxSizing: 'border-box',
+}
+
+const modalCheckboxRowStyle = {
+  display: 'flex',
+  alignItems: 'flex-start',
+  gap: 10,
+  fontSize: 13,
+  color: 'rgba(255,255,255,0.75)',
+  cursor: 'pointer',
+  lineHeight: 1.4,
+}
+
+const modalPrimaryBtnStyle = {
+  background: '#4CC9F0',
+  color: '#050509',
 }
 
 export default Perfil

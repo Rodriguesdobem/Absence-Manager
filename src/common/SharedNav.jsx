@@ -51,7 +51,7 @@ function SharedNav({ title, activeItem }) {
   ]
   const professorNavItems = [
     { to: '/professor/dashboard', label: 'Dashboard', key: 'prof-dashboard', icon: <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg> },
-    { to: '/professor/turmas', label: 'Ver Turmas', key: 'prof-turmas', icon: <svg viewBox="0 0 24 24"><path d="M3 4h18v14H3z"/><path d="M8 22h8"/><path d="M12 18v4"/></svg> },
+    { to: '/professor/turmas', label: 'Minhas Turmas', key: 'prof-turmas', icon: <svg viewBox="0 0 24 24"><path d="M3 4h18v14H3z"/><path d="M8 22h8"/><path d="M12 18v4"/></svg> },
     { to: '/professor/chamada', label: 'Chamada / QRCode', key: 'prof-chamada', icon: <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3z"/><path d="M19 14h2v7h-7v-2"/></svg> },
     { to: '/professor/relatorios', label: 'Relatorios', key: 'prof-relatorios', icon: <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> },
     { to: '/perfil', label: 'Meu Perfil', key: 'perfil', icon: <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
@@ -124,7 +124,7 @@ function SharedNav({ title, activeItem }) {
             </div>
             <div>
               <div className="hb-sidebar-user-name">{user?.nome || (isAluno ? 'Aluno' : isProfessor ? 'Professor' : 'Administrador')}</div>
-              <div className="hb-sidebar-user-role">{isAluno ? 'Área do Aluno' : isProfessor ? 'Area do Professor' : 'Admin do Sistema'}</div>
+              <div className="hb-sidebar-user-role">Meu Perfil</div>
             </div>
           </Link>
         </div>
